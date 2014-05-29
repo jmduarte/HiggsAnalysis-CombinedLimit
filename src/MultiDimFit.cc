@@ -236,10 +236,12 @@ void MultiDimFit::doGrid(RooAbsReal &nll)
     //snap.Print("V");
     if (n == 1) {
 	// can do a more intellegent spacing of points
-        for (unsigned int i = 0; i < points_; ++i) {
+//        for (unsigned int i = 0; i < points_; ++i) {
+        for (unsigned int i = 0; i < points_+1; ++i) {
             if (i < firstPoint_) continue;
             if (i > lastPoint_)  break;
-            double x =  pmin[0] + (i+0.5)*(pmax[0]-pmin[0])/points_; 
+            double x =  pmin[0] + i*(pmax[0]-pmin[0])/points_; 
+            //double x =  pmin[0] + (i+0.5)*(pmax[0]-pmin[0])/points_; 
 	    if (squareDistPoiStep_){
 		// distance between steps goes as ~square of distance from middle or range (could this be changed to from best fit value?)
 		double phalf = (pmax[0]-pmin[0])/2;
@@ -264,17 +266,29 @@ void MultiDimFit::doGrid(RooAbsReal &nll)
         }
     } else if (n == 2) {
         unsigned int sqrn = ceil(sqrt(double(points_)));
-        unsigned int ipoint = 0, nprint = ceil(0.005*sqrn*sqrn);
+        unsigned int ipoint = 0, nprint=1;//nprint = ceil(0.005*sqrn*sqrn);
         RooAbsReal::setEvalErrorLoggingMode(RooAbsReal::CountErrors);
         CloseCoutSentry sentry(verbose < 2);
         double deltaX =  (pmax[0]-pmin[0])/sqrn, deltaY = (pmax[1]-pmin[1])/sqrn;
-        for (unsigned int i = 0; i < sqrn; ++i) {
-            for (unsigned int j = 0; j < sqrn; ++j, ++ipoint) {
+				std::cout<< deltaX<<" "<<deltaY<<std::endl;
+        for (unsigned int i = 0; i < sqrn+1; ++i) {
+            for (unsigned int j = 0; j < sqrn+1; ++j, ++ipoint) {
                 if (ipoint < firstPoint_) continue;
                 if (ipoint > lastPoint_)  break;
                 *params = snap; 
-                double x =  pmin[0] + (i+0.5)*deltaX; 
-                double y =  pmin[1] + (j+0.5)*deltaY; 
+        //        double x =  pmin[0] + (i+0.5)*deltaX; 
+        //        double y =  pmin[1] + (j+0.5)*deltaY; 
+                double x =  pmin[0] + (i)*deltaX; 
+                double y =  pmin[1] + (j)*deltaY; 
+								if (pmax[0]==1 && pmax[1]==1){
+								if ( (fabs(x)+fabs(y)-1 )<0.0001){
+							   if(x>0.) x -= 0.00001;
+  	             else if(x<0.) x += 0.00001;
+    	           if(y>0.) y -= 0.00001;
+      	         else if(y<0.) y += 0.00001;
+								}
+								}
+
                 if (verbose && (ipoint % nprint == 0)) {
                          fprintf(sentry.trueStdOut(), "Point %d/%d, (i,j) = (%d,%d), %s = %f, %s = %f\n",
                                         ipoint,sqrn*sqrn, i,j, poiVars_[0]->GetName(), x, poiVars_[1]->GetName(), y);
@@ -306,6 +320,7 @@ void MultiDimFit::doGrid(RooAbsReal &nll)
                     double qN = 2*(deltaNLL_);
                     double prob = ROOT::Math::chisquared_cdf_c(qN, n+nOtherFloatingPoi_);
                     Combine::commitPoint(true, /*quantile=*/prob);
+										std::cout<<"poiVal "<<poiVals_[0] <<" "<<poiVals_[1]<<" "<<deltaNLL_<<std::endl;
                 }
                 if (gridType_ == G3x3) {
                     bool forceProfile = !fastScan_ && std::min(fabs(deltaNLL_ - 1.15), fabs(deltaNLL_ - 2.995)) < 0.5;
