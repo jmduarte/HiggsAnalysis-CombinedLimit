@@ -259,6 +259,7 @@ void MultiDimFit::doGrid(RooAbsReal &nll)
                         minim.minimize(verbose-1);
             if (ok) {
                 deltaNLL_ = nll.getVal() - nll0;
+								nllValue_ = nll.getVal();
                 double qN = 2*(deltaNLL_);
                 double prob = ROOT::Math::chisquared_cdf_c(qN, n+nOtherFloatingPoi_);
                 Combine::commitPoint(true, /*quantile=*/prob);
@@ -287,6 +288,8 @@ void MultiDimFit::doGrid(RooAbsReal &nll)
     	           if(y>0.) y -= 0.00001;
       	         else if(y<0.) y += 0.00001;
 								}
+								else if (fabs(x)+fabs(y)-1 > 0.01)
+									continue;
 								}
 
                 if (verbose && (ipoint % nprint == 0)) {

@@ -67,8 +67,14 @@ ClassImp(HZZ4L_RooSpinZeroPdf_phase)
    Double_t T4 = dynamic_cast<const RooHistFunc*>(_coefList.at(2))->getVal();
    Double_t T5 = dynamic_cast<const RooHistFunc*>(_coefList.at(3))->getVal();
 
+   double mysgn = 1;
+
+   if(fai < 0.) 
+     {
+       mysgn = -1.;
+     }
    
-   value = (1.-fabs(fai)) * T1 + fabs(fai) * T2 + sqrt((1.-fabs(fai))*fabs(fai)) * (cos(phi)*T4 +sin(phi)*T5); 
+   value = (1.-fabs(fai)) * T1 + fabs(fai) * T2 + mysgn*sqrt((1.-fabs(fai))*fabs(fai)) * (cos(phi)*T4 +sin(phi)*T5); 
    
    if ( value <= 0.) return 1.0e-200;
    
@@ -171,9 +177,15 @@ Double_t HZZ4L_RooSpinZeroPdf_phase::analyticalIntegral(Int_t code, const char* 
  double Int_T4  = dynamic_cast<const RooHistFunc*>(_coefList.at(2))-> analyticalIntegral(1000);
  double Int_T5  = dynamic_cast<const RooHistFunc*>(_coefList.at(3))-> analyticalIntegral(1000);
 
+   double mysgn = 1;
+
+   if(fai < 0.) 
+     {
+       mysgn = -1.;
+     }
 
 
-	 double integral = (1.-fabs(fai)) * Int_T1 + fabs(fai) * Int_T2 + sqrt((1.-fabs(fai))*fabs(fai)) *( cos(phi)* Int_T4 + sin(phi) * Int_T5) ;
+	 double integral = (1.-fabs(fai)) * Int_T1 + fabs(fai) * Int_T2 + mysgn*sqrt((1.-fabs(fai))*fabs(fai)) *( cos(phi)* Int_T4 + sin(phi) * Int_T5) ;
 
 	 return integral;
        }
