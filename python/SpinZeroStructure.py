@@ -11,6 +11,7 @@ class SpinZeroHiggs(PhysicsModel):
         self.fg4fixed = False
         self.fg2POI = False
         self.phiPOI = False
+        self.cPOI = False
         self.phiFloating = False
         self.phi2Floating = False
         self.poiMap = []
@@ -67,6 +68,9 @@ class SpinZeroHiggs(PhysicsModel):
             if 'phiFloating' in po: 
                 print "Will consider the phase as a floating parameter"
                 self.phiFloating = True
+            if 'cPOI' in po: 
+                print "Will consider the czz_ww as a parameter of interest"
+                self.cPOI = True
             
     def doParametersOfInterest(self):
         """Create POI and other parameters, and define the POI set."""
@@ -81,6 +85,12 @@ class SpinZeroHiggs(PhysicsModel):
             else:
                 self.modelBuilder.doVar("CMS_zz4l_fg4[0.,-1,1]")
             poi = "CMS_zz4l_fg4"
+            if self.cPOI:
+                if self.modelBuilder.out.var("cww_zz"):
+                   print "have czz_ww inside"
+                else:
+                   self.modelBuilder.doVar("cww_zz[0.5,-10,10]")
+                poi += ",cww_zz"
 
             if self.fg2POI:
                if self.modelBuilder.out.var("CMS_zz4l_fg2"):
@@ -96,7 +106,6 @@ class SpinZeroHiggs(PhysicsModel):
                 else:
                     self.modelBuilder.out.var("r").setAttribute("flatParam")
             if self.phiFloating:
-                #self.modelBuilder.doVar("CMS_zz4l_fg4phi[0.,-math.pi,math.pi]")
                 if self.modelBuilder.out.var("CMS_zz4l_fg4phi"):
                     print "have fg4phi inside"
                 else: 

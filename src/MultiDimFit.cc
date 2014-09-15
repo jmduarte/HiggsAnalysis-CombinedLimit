@@ -241,6 +241,16 @@ void MultiDimFit::doGrid(RooAbsReal &nll)
             if (i < firstPoint_) continue;
             if (i > lastPoint_)  break;
             double x =  pmin[0] + i*(pmax[0]-pmin[0])/points_; 
+						if(pmax[0]==1){
+								if( fabs(x)==1){
+									if(x>0)
+										x-=0.000001;
+										else
+										x+=0.000001;
+								}
+						}
+
+					
             //double x =  pmin[0] + (i+0.5)*(pmax[0]-pmin[0])/points_; 
 	    if (squareDistPoiStep_){
 		// distance between steps goes as ~square of distance from middle or range (could this be changed to from best fit value?)
@@ -259,7 +269,6 @@ void MultiDimFit::doGrid(RooAbsReal &nll)
                         minim.minimize(verbose-1);
             if (ok) {
                 deltaNLL_ = nll.getVal() - nll0;
-								nllValue_ = nll.getVal();
                 double qN = 2*(deltaNLL_);
                 double prob = ROOT::Math::chisquared_cdf_c(qN, n+nOtherFloatingPoi_);
                 Combine::commitPoint(true, /*quantile=*/prob);
@@ -279,17 +288,29 @@ void MultiDimFit::doGrid(RooAbsReal &nll)
                 *params = snap; 
         //        double x =  pmin[0] + (i+0.5)*deltaX; 
         //        double y =  pmin[1] + (j+0.5)*deltaY; 
-                double x =  pmin[0] + (i)*deltaX; 
-                double y =  pmin[1] + (j)*deltaY; 
-								if (pmax[0]==1 && pmax[1]==1){
-								if ( (fabs(x)+fabs(y)-1 )<0.0001){
+                double x =  pmin[0] + (j)*deltaX; 
+                double y =  pmin[1] + (i)*deltaY; 
+								//if (pmax[0]==1 && pmax[1]==1){
+								//if ( (fabs(x)+fabs(y)-1 )<0.0001){
+							  // if(x>0.) x -= 0.00001;
+  	            // else if(x<0.) x += 0.00001;
+    	          // if(y>0.) y -= 0.00001;
+      	        // else if(y<0.) y += 0.00001;
+								//}
+                //else if (fabs(x)+fabs(y)-1 > 0.01)
+                // continue;
+								//}
+								if (pmax[0]==1 ){
+								if ( (fabs(x)-1 )<0.0001){
 							   if(x>0.) x -= 0.00001;
   	             else if(x<0.) x += 0.00001;
-    	           if(y>0.) y -= 0.00001;
-      	         else if(y<0.) y += 0.00001;
 								}
-								else if (fabs(x)+fabs(y)-1 > 0.01)
-									continue;
+								}
+								if (pmax[1]==1 ){
+								if ( (fabs(y)-1 )<0.0001){
+							   if(y>0.) y -= 0.00001;
+  	             else if(y<0.) y += 0.00001;
+								}
 								}
 
                 if (verbose && (ipoint % nprint == 0)) {
