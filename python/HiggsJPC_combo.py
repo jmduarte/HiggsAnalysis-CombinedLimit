@@ -21,9 +21,9 @@ class TwoHypotesisHiggs(PhysicsModel):
         "Split in production and decay, and call getHiggsSignalYieldScale; return 1 for backgrounds "
         if not self.DC.isSignal[process]: return 1
 
-        isAlt=0 #scalar
-        if 'ALT' in process: isAlt=1   #our PS
-        elif ('ggH' in process or 'qqH' in process): isAlt=2     #VV PS+SM
+        isAlt=0 #VH scalar
+        if 'ALT' in process: isAlt=1   #VH pseudoscalar
+        elif ('ggH' in process or 'qqH' in process): isAlt=2     #VV
         elif 'ggZhTriangleOnly' in process: isAlt=3
         elif 'ggZhBoxOnly' in process: isAlt=4
         elif 'ggZh' in process:isAlt=5
@@ -128,22 +128,27 @@ class TwoHypotesisHiggs(PhysicsModel):
                     print 'Treating r as a POI'
                     poi += ",r"
 
-                self.modelBuilder.doVar("r_VV[1,0,4]");
+                self.modelBuilder.doVar("r_qq[1,0,4]");
 
                 self.modelBuilder.factory_("expr::r_times_not_CMS_zz4l_fg4(\"@0*(1-@1)\", r, CMS_zz4l_fg4)")
                 self.modelBuilder.factory_("expr::r_times_CMS_zz4l_fg4(\"@0*@1\", r, CMS_zz4l_fg4)")
-                self.modelBuilder.factory_("expr::r_times_r_VV_times_not_CMS_zz4l_fg4(\"@0*@2*(1-@1)\", r, CMS_zz4l_fg4, r_VV)")
-                self.modelBuilder.factory_("expr::r_times_r_VV_times_CMS_zz4l_fg4(\"@0*@1*@2\", r, CMS_zz4l_fg4, r_VV)")
+                self.modelBuilder.factory_("expr::r_times_r_qq_times_not_CMS_zz4l_fg4(\"@0*@2*(1-@1)\", r, CMS_zz4l_fg4, r_qq)")
+                self.modelBuilder.factory_("expr::r_times_r_qq_times_CMS_zz4l_fg4(\"@0*@1*@2\", r, CMS_zz4l_fg4, r_qq)")
 
                 #ggZH
-                self.modelBuilder.factory_("expr::SqrtMuOneMinusF(\"(@0*(1-@1))^(1/2)\",r,CMS_zz4l_fg4)")
-                self.modelBuilder.factory_("expr::oneMinusSqrtMuOneMinusF(\"1-(@0*(1-@1))^(1/2)\",r,CMS_zz4l_fg4)")
-                self.modelBuilder.factory_("expr::MuTimesOneMinusF_minus_SqrtMuTimesOneMinusF(\"(@0*(1-@1))-(@0*(1-@1))^(1/2)\",r,CMS_zz4l_fg4)")
-                
-                #self.sigNorms = { True:'r_times_x', False:'r_times_not_x' }
-                #self.sigNorms = { 2:'r', 1:'r_times_CMS_zz4l_fg4', 0:'r_times_not_CMS_zz4l_fg4' }
-                #self.sigNorms = { 2:'r', 1:'r_times_r_VV_times_CMS_zz4l_fg4', 0:'r_times_r_VV_times_not_CMS_zz4l_fg4' }
-                self.sigNorms = { 5:'SqrtMuOneMinusF', 4:'oneMinusSqrtMuOneMinusF', 3:'MuTimesOneMinusF_minus_SqrtMuTimesOneMinusF', 2:'r', 1:'r_times_r_VV_times_CMS_zz4l_fg4', 0:'r_times_r_VV_times_not_CMS_zz4l_fg4' }
+                self.modelBuilder.factory_("expr::rTimesRqqTimesOneMinusF_minus_sqrt_rTimesOneMinusF(\"(@0*@2*(1-@1))-((@3*@0*@2*(1-@1))**(1/2))\",r,CMS_zz4l_fg4, r_qq, r_box)") #triangle
+                self.modelBuilder.factory_("expr::rBox_minus_sqrt_rTimesOneMinusF(\"@3-((@3*@0*@2*(1-@1))**(1/2))\",r, CMS_zz4l_fg4, r_qq, r_box)") #box
+                self.modelBuilder.factory_("expr::sqrt_rTimesOneMinusF(\"(@3*@0*@2*(1-@1))**(1/2)\",r,CMS_zz4l_fg4, r_qq, r_box)") #box + triangle
+
+                """
+                isAlt=0 #VH scalar
+                if 'ALT' in process: isAlt=1   #VH pseudoscalar
+                elif ('ggH' in process or 'qqH' in process): isAlt=2     #VV
+                elif 'ggZhTriangleOnly' in process: isAlt=3
+                elif 'ggZhBoxOnly' in process: isAlt=4
+                elif 'ggZh' in process:isAlt=5
+                """
+                self.sigNorms = { 5:'sqrt_rTimesOneMinusF', 4:'rBox_minus_sqrt_rTimesOneMinusF', 3:'rTimesRqqTimesOneMinusF_minus_sqrt_rTimesOneMinusF', 2:'r', 1:'r_times_r_qq_times_CMS_zz4l_fg4', 0:'r_times_r_qq_times_not_CMS_zz4l_fg4' }
 
             	if self.fqqIncluded:
 
