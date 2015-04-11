@@ -53,7 +53,7 @@ for card in `ls dataCard_*txt`; do
      if [ $expected == 1 ]; then command=${command}" -t -1 --expectSignal=1 "; fi
 
      echo $command
-     #nohup sh -c "eval $command" >& $ID.log &
+     nohup sh -c "eval $command" >& $ID.log &
      echo
     
 done
