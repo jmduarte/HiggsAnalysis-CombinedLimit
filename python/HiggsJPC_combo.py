@@ -129,7 +129,7 @@ class TwoHypotesisHiggs(PhysicsModel):
                     poi += ",r"
 
                 self.modelBuilder.doVar("r_qq[1,0,10]");
-                self.modelBuilder.doVar("r_box[1,0,10]");
+                self.modelBuilder.doVar("r_box[1,0,100]");
 
                 self.modelBuilder.factory_("expr::r_times_not_CMS_zz4l_fg4(\"@0*(1-@1)\", r, CMS_zz4l_fg4)")
                 self.modelBuilder.factory_("expr::r_times_CMS_zz4l_fg4(\"@0*@1\", r, CMS_zz4l_fg4)")
