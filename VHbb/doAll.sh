@@ -28,6 +28,21 @@ echo
 for card in `ls dataCard_*txt`; do
     ID=${card##*_}
     ID=${ID%%.*}
+    
+    if [ $cmsStyle == 1 ]; then ID=${ID}_CMS;
+    elif [ $cmsStyle == 0 ]; thenID=${ID}_TEV;
+    else exit
+    fi
+    
+    if [ $commonMu == 1 ]; thenID=${ID}_common;
+    elif [ $commonMu == 0 ]; thenID=${ID}_float;
+    else exit
+    fi
+
+    if [ $expected == 1 ]; thenID=${ID}_expected;
+    elif [ $expected == 0 ]; thenID=${ID}_observed;
+    else exit
+    fi
 
     mkdir $ID
 
