@@ -4,7 +4,7 @@
 cmsStyle=1
 commonMu=1   #this parameter is ignored for tevatron style
 
-expected=1
+expected=0
 
 tolerance=0.01
 
@@ -30,33 +30,23 @@ for card in `ls dataCard_*txt`; do
     ID=${ID%%.*}
     
     if [ $cmsStyle == 1 ]; then ID=${ID}_CMS;
-    elif [ $cmsStyle == 0 ]; thenID=${ID}_TEV;
+    elif [ $cmsStyle == 0 ]; then ID=${ID}_TEV;
     else exit
     fi
     
-    if [ $commonMu == 1 ]; thenID=${ID}_common;
-    elif [ $commonMu == 0 ]; thenID=${ID}_float;
+    if [ $commonMu == 1 ]; then ID=${ID}_common;
+    elif [ $commonMu == 0 ]; then ID=${ID}_float;
     else exit
     fi
 
-    if [ $expected == 1 ]; thenID=${ID}_expected;
-    elif [ $expected == 0 ]; thenID=${ID}_observed;
+    if [ $expected == 1 ]; then ID=${ID}_expected;
+    elif [ $expected == 0 ]; then ID=${ID}_observed;
     else exit
     fi
 
-    mkdir $ID
+    command="mkdir $ID; text2workspace.py -m 125.6 $card -P HiggsAnalysis.CombinedLimit.HiggsJPC_combo:twoHypothesisHiggs --PO=muFloating -o ${ID}.root -v 7; cd $ID; combine -M MultiDimFit ../${ID}.root "
 
-    command="text2workspace.py -m 125.6 $card -P HiggsAnalysis.CombinedLimit.HiggsJPC_combo:twoHypothesisHiggs --PO=muFloating -o ${ID}.root -v 7; cd $ID; combine -M MultiDimFit ../${ID}.root "
-
-    if [ "${ID:0:1}" == "W" ]; then
-	command=${command}" --setPhysicsModelParameters cww_zz=1,r_ww=9999999"
-    elif [ "${ID:0:1}" == "Z" ]; then
-	command=${command}" --setPhysicsModelParameters cww_zz=0,r_ww=0"
-    elif [ "${ID:0:1}" == "V" ]; then
-        command=${command}" --setPhysicsModelParameters cww_zz=0.5,r_ww=1"
-    else
-	echo ERROR!!!!!!!!!!!!!!!!!!!!!!!!!
-    fi
+    command=${command}" --setPhysicsModelParameters cww_zz=0.5,r_ww=1"
     
     if [ $cmsStyle == 0 ]; then command=${command}",r=1,r_qq=1,r_box=1 "
     elif [ $commonMu == 1 ]; then   command=${command}",r_qq=1,r_box=1 "
