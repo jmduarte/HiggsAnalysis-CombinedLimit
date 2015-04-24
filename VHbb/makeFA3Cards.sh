@@ -1,6 +1,7 @@
 #!/bin/bash -x
 
 applyDoubleRatio=true
+areChannelsSplit=false
 
 #ZHDoubleRatio=255.414 # 7TeV
 #WHDoubleRatio=351.592 # 7TeV
@@ -9,10 +10,19 @@ WHDoubleRatio=366.436 # 8TeV
 
 statThresh=15
 statTotalThresh=7
-
 hVVCardDir=/uscms_data/d1/jstupak/fa3Combo/CMSSW_6_1_1/src/vhvv_combination/hVVCards
 
 #####################################################################################
+
+if [ $areChannelsSplit != true ]; then
+    WHtemplates=`ls -d templates_WH*`
+    ZHtemplates=`ls -d templates_ZH*`
+fi
+
+if [ $areChannelsSplit == true ]; then
+    WHtemplates=`ls -d templates_[23]*`
+    ZHtemplates=`ls -d templates_[01]*`
+fi
 
 if [ $applyDoubleRatio != true ]; then
     ZHDoubleRatio=1
@@ -22,14 +32,13 @@ fi
 #mkdir backup
 #cp -r templates_* backup
 
-mkdir DR_042315
-cp -r templates_* DR_042315
-cd DR_042315
+mkdir testDR_042315
+cp -r templates_* testDR_042315
+cd testDR_042315
 
 #####################################################################################
 
-for dir in `ls -d templates_WH*`; do
-#for dir in `ls -d templates_[23]*`; do
+for dir in ${WHtemplates[@]}; do
     cd $dir
 
     #modify signal names in datacards
@@ -81,8 +90,7 @@ done
 
 #####################################################################################
 
-for dir in `ls templates_ZH* -d`; do
-#for dir in `ls templates_[01]* -d`; do
+for dir in ${ZHtemplates[@]}; do
     cd $dir
 
     #modify signal names in datacards
@@ -117,20 +125,25 @@ done
 
 #####################################################################################
 
-combineCards.py templates_WH/dataCard_WhOnly.txt > dataCard_Wh.txt
-combineCards.py templates_ZH/dataCard.txt > dataCard_Zh.txt
-combineCards.py templates_WH/dataCard_combo.txt templates_ZH/dataCard.txt > dataCard_Vh.txt
+# if the templates ARE NOT split into channels:
+if [ $areChannelsSplit != true ]; then
+	combineCards.py templates_WH/dataCard_WhOnly.txt > dataCard_Wh.txt
+	combineCards.py templates_ZH/dataCard.txt > dataCard_Zh.txt
+	combineCards.py templates_WH/dataCard_combo.txt templates_ZH/dataCard.txt > dataCard_Vh.txt
 
-combineCards.py templates_WH/dataCard_WhOnly.txt  $hVVCardDir/dataCard_WW.txt > dataCard_WWWh.txt
-combineCards.py templates_ZH/dataCard.txt         $hVVCardDir/dataCard_ZZ.txt > dataCard_ZZZh.txt
-combineCards.py templates_WH/dataCard_combo.txt  templates_ZH/dataCard.txt $hVVCardDir/dataCard_VV.txt > dataCard_VVVh.txt
+	combineCards.py templates_WH/dataCard_WhOnly.txt  $hVVCardDir/dataCard_WW.txt > dataCard_WWWh.txt
+	combineCards.py templates_ZH/dataCard.txt         $hVVCardDir/dataCard_ZZ.txt > dataCard_ZZZh.txt
+	combineCards.py templates_WH/dataCard_combo.txt  templates_ZH/dataCard.txt $hVVCardDir/dataCard_VV.txt > dataCard_VVVh.txt
+fi
 
+#if the templates ARE split into channels:
+if [ $areChannelsSplit == true ]; then
+	combineCards.py templates_[23]*/dataCard_WhOnly.txt > dataCard_Wh.txt
+	combineCards.py templates_[01]*/dataCard.txt > dataCard_Zh.txt
+	combineCards.py templates_[23]*/dataCard_combo.txt templates_[01]*/dataCard.txt > dataCard_Vh.txt
 
-# combineCards.py templates_[23]*/dataCard_WhOnly.txt > dataCard_Wh.txt
-# combineCards.py templates_[01]*/dataCard.txt > dataCard_Zh.txt
-# combineCards.py templates_[23]*/dataCard_combo.txt templates_[01]*/dataCard.txt > dataCard_Vh.txt
-# 
-# combineCards.py templates_[23]*/dataCard_WhOnly.txt  $hVVCardDir/dataCard_WW.txt > dataCard_WWWh.txt
-# combineCards.py templates_[01]*/dataCard.txt         $hVVCardDir/dataCard_ZZ.txt > dataCard_ZZZh.txt
-# combineCards.py templates_[23]*/dataCard_combo.txt  templates_[01]*/dataCard.txt $hVVCardDir/dataCard_VV.txt > dataCard_VVVh.txt
+	combineCards.py templates_[23]*/dataCard_WhOnly.txt  $hVVCardDir/dataCard_WW.txt > dataCard_WWWh.txt
+	combineCards.py templates_[01]*/dataCard.txt         $hVVCardDir/dataCard_ZZ.txt > dataCard_ZZZh.txt
+	combineCards.py templates_[23]*/dataCard_combo.txt  templates_[01]*/dataCard.txt $hVVCardDir/dataCard_VV.txt > dataCard_VVVh.txt
+fi
 
