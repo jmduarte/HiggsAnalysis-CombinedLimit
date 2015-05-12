@@ -1,15 +1,26 @@
 #!/bin/bash -x
 
 applyDoubleRatio=true
-areChannelsSplit=false
+areChannelsSplit=true
 
-#ZHDoubleRatio=255.414 # 7TeV
-#WHDoubleRatio=351.592 # 7TeV
-ZHDoubleRatio=266.864 # 8TeV                                                                                                                         
-WHDoubleRatio=366.436 # 8TeV
+#ZHDoubleRatio=255.414 # 7TeV, to convert ZZ 
+#WHDoubleRatio=351.592 # 7TeV, to convert ZZ 
+#ZHDoubleRatio=266.864 # 8TeV, to convert ZZ                                                                                                                         
+#WHDoubleRatio=366.436 # 8TeV, to convert ZZ 
+ZHDoubleRatio=1 # 8TeV, to convert ZH                                                                                                                 
+WHDoubleRatio=1.373 # 8TeV, to convert ZH
 
 statThresh=15
 statTotalThresh=7
+p0WHmed=0.5276
+p1WHmed=0.001136
+p0WHhigh=1.051
+p1WHhigh=-0.0001513
+p0ZHmed=0.7768
+p1ZHmed=0.0009735
+p0ZHhigh=1.039
+p1ZHhigh=-0.0001152
+
 hVVCardDir=/uscms_data/d1/jstupak/fa3Combo/CMSSW_6_1_1/src/vhvv_combination/hVVCards
 
 #####################################################################################
@@ -32,9 +43,12 @@ fi
 #mkdir backup
 #cp -r templates_* backup
 
-mkdir testDR_042315
-cp -r templates_* testDR_042315
-cd testDR_042315
+#mkdir zhDR_p0plusp1_050915_uncorrelatedBkg
+#cp -r templates_* zhDR_p0plusp1_050915_uncorrelatedBkg
+#cd zhDR_p0plusp1_050915_uncorrelatedBkg
+mkdir teest
+cp -r templates_* teest
+cd teest
 
 #####################################################################################
 
@@ -50,6 +64,8 @@ for dir in ${WHtemplates[@]}; do
     #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     sed -i 's/Wh_125p6_0P       /whsig             /g' dataCard_WhOnly.txt
     sed -i 's/Wh_125p6_0M       /whsig_ALT         /g' dataCard_WhOnly.txt
+    sed -i 's/Zh_125p6_0P       /zhsig             /g' dataCard_WhOnly.txt
+    sed -i 's/Zh_125p6_0M       /zhsig_ALT         /g' dataCard_WhOnly.txt
 
     #---------------------------------------------------------------------------------
 
@@ -82,8 +98,8 @@ EOF
 
     #add stat shape nuissance parameters
 
-    python ../../addStatShapes.py $statThresh $statTotalThresh plots.root plots.root dataCard_combo.txt dataCard_combo.txt
-    python ../../addStatShapes.py $statThresh $statTotalThresh plots.root dummy.root dataCard_WhOnly.txt dataCard_WhOnly.txt
+    python ../../addStatShapes.py $statThresh $statTotalThresh plots.root plots.root dataCard_combo.txt dataCard_combo.txt ../../plots2dWH.root $p0WHmed $p1WHmed $p0WHhigh $p1WHhigh
+    python ../../addStatShapes.py $statThresh $statTotalThresh plots.root dummy.root dataCard_WhOnly.txt dataCard_WhOnly.txt ../../plots2dWH.root $p0WHmed $p1WHmed $p0WHhigh $p1WHhigh
 
     cd -
 done
@@ -118,7 +134,7 @@ EOF
 
     #add stat shape nuissance parameters
 
-    python ../../addStatShapes.py $statThresh $statTotalThresh plots.root plots.root dataCard.txt dataCard.txt
+    python ../../addStatShapes.py $statThresh $statTotalThresh plots.root plots.root dataCard.txt dataCard.txt ../../plots2dZH.root $p0ZHmed $p1ZHmed $p0ZHhigh $p1ZHhigh
 
     cd -
 done
