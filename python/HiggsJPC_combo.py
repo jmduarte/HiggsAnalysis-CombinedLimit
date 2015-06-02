@@ -123,13 +123,13 @@ class TwoHypotesisHiggs(PhysicsModel):
                 self.sigNorms = { True:'_times_CMS_zz4l_fg4', False:'_times_not_CMS_zz4l_fg4' }
                                     
             else:
-                self.modelBuilder.doVar("r[1,0,4]");
+                self.modelBuilder.doVar("r[1,-4,4]");
                 if self.muAsPOI:
                     print 'Treating r as a POI'
                     poi += ",r"
 
-                self.modelBuilder.doVar("r_qq[1,0,10]");
-                self.modelBuilder.doVar("r_box[1,0,100]");
+                self.modelBuilder.doVar("r_qq[1,-10,10]");
+                self.modelBuilder.doVar("r_box[1,-100,100]");
 
                 self.modelBuilder.factory_("expr::r_times_not_CMS_zz4l_fg4(\"@0*(1-@1)\", r, CMS_zz4l_fg4)")
                 self.modelBuilder.factory_("expr::r_times_CMS_zz4l_fg4(\"@0*@1\", r, CMS_zz4l_fg4)")
@@ -137,9 +137,9 @@ class TwoHypotesisHiggs(PhysicsModel):
                 self.modelBuilder.factory_("expr::r_times_r_qq_times_CMS_zz4l_fg4(\"@0*@1*@2\", r, CMS_zz4l_fg4, r_qq)")
 
                 #ggZH
-                self.modelBuilder.factory_("expr::rTimesRqqTimesOneMinusF_minus_sqrt_rTimesOneMinusF(\"(@0*@2*(1-@1))-((@3*@0*@2*(1-@1))^(0.5))\",r,CMS_zz4l_fg4, r_qq, r_box)") #triangle
-                self.modelBuilder.factory_("expr::rBox_minus_sqrt_rTimesOneMinusF(\"@3-((@3*@0*@2*(1-@1))^(0.5))\",r, CMS_zz4l_fg4, r_qq, r_box)") #box
-                self.modelBuilder.factory_("expr::sqrt_rTimesOneMinusF(\"(@3*@0*@2*(1-@1))^(0.5)\",r,CMS_zz4l_fg4, r_qq, r_box)") #box + triangle
+                self.modelBuilder.factory_("expr::rTimesRqqTimesOneMinusF_minus_sqrt_rTimesOneMinusF(\"(@0*@2*(1-@1)) - (((@3*@0*@2)/abs(@3*@0*@2))*((abs(@3*@0*@2)*(1-@1))^(0.5)))\",r,CMS_zz4l_fg4, r_qq, r_box)") #triangle
+                self.modelBuilder.factory_("expr::rBox_minus_sqrt_rTimesOneMinusF(                   \"@3             - (((@3*@0*@2)/abs(@3*@0*@2))*((abs(@3*@0*@2)*(1-@1))^(0.5)))\",r,CMS_zz4l_fg4, r_qq, r_box)") #box
+                self.modelBuilder.factory_("expr::sqrt_rTimesOneMinusF(                                               \"(((@3*@0*@2)/abs(@3*@0*@2))*((abs(@3*@0*@2)*(1-@1))^(0.5)))\",r,CMS_zz4l_fg4, r_qq, r_box)") #box + triangle
 
                 """
                 isAlt=0 #VH scalar
