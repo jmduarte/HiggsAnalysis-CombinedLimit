@@ -38,7 +38,7 @@ do
 	    do
 	  
 	      /uscms_data/d1/jstupak/fa3Combo/CMSSW_6_1_1/src/HiggsAnalysis/CombinedLimit/VHbb/doAll.condor.sh $cardDir $i $j $k $l $m $n $o
-	      sleep 1
+	      sleep 2
 	      
 	      done
 	  done

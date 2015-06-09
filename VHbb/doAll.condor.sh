@@ -85,15 +85,21 @@ for card in `ls ${cardDir}/dataCard_*txt`; do
 
     command=${command}" --setPhysicsModelParameters cww_zz=0.5,r_ww=1,r_box=1"
     
+    #HACK
+    #command=${command}",wh_medBoost_trend=0,wh_highBoost_trend=0,zh_medBoost_trend=0,zh_highBoost_trend=0"
+
     if [ $cmsStyle == 0 ]; then command=${command}",r=1,r_qq=1 "
     elif [ $commonMu == 1 ]; then   command=${command}",r_qq=1 "
     fi
 
     command=${command}" --freezeNuisances r_ww,cww_zz,r_box"
-    if [ $cmsStyle == 0 ]; then command=${command}",r,r_qq "
-    elif [ $commonMu == 1 ]; then command=${command}",r_qq "
+    if [ $cmsStyle == 0 ]; then command=${command}",r,r_qq"
+    elif [ $commonMu == 1 ]; then command=${command}",r_qq"
     fi
-    
+
+    #HACK
+    #command=${command}",wh_medBoost_trend,wh_highBoost_trend,zh_medBoost_trend,zh_highBoost_trend"
+
     command=${command}" --setPhysicsModelParameterRanges CMS_zz4l_fg4=0,1 --algo=grid --points 100 -m 125.6 --minimizerTolerance=${tolerance} --maxFailedSteps=${maxSteps} --minimizerStrategy=${strategy}"
 
     if [ $minuit2 == 0 ]; then command=${command}" --minimizerAlgo=Minuit "
@@ -109,25 +115,25 @@ for card in `ls ${cardDir}/dataCard_*txt`; do
 
     command=${command}" -v 2; mv higgsCombine*root ${ID}.combine.root"
 
-cat <<EOF >condor.job
+cat <<EOF >/uscmst1b_scratch/lpc1/3DayLifetime/${USER}/condor.job
 universe = vanilla
-Executable = ${ID}.sh
+Executable = /uscmst1b_scratch/lpc1/3DayLifetime/${USER}/${ID}.sh
 Should_Transfer_Files = YES
 WhenToTransferOutput = ON_EXIT
 Output = condor.${ID}.out
 Error = condor.${ID}.err
-Log = condor.${ID}.log
+Log = /uscmst1b_scratch/lpc1/3DayLifetime/${USER}/condor.${ID}.log
 Notification = Never
 Queue 1
 EOF
 
-cat <<EOF >${ID}.sh
+cat <<EOF >/uscmst1b_scratch/lpc1/3DayLifetime/${USER}/${ID}.sh
 #!/bin/bash -x
 $command
 EOF
 
-    chmod +x $ID.sh
+    chmod +x /uscmst1b_scratch/lpc1/3DayLifetime/${USER}/$ID.sh
     sleep 1
-    condor_submit condor.job
+    condor_submit /uscmst1b_scratch/lpc1/3DayLifetime/${USER}/condor.job
 
 done
