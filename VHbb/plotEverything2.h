@@ -7,6 +7,7 @@
 #include "TFile.h"
 #include "TH1F.h"
 #include "TTree.h"
+#include "TChain.h"
 #include "TCanvas.h"
 #include "TGraph.h"
 #include "TAxis.h"
@@ -17,13 +18,13 @@
 using namespace std;
 
 
-double global_x_max = .1; //1, .1 
-int ndiv = 505; //512, 505
-TString prepend = "zoom_";
+//double global_x_max = .1; //1, .1 
+//int ndiv = 505; //512, 505
+//TString prepend = "zoom_";
 
-//double global_x_max = 1;
-//int ndiv = 512; 
-//TString prepend = "full_";
+double global_x_max = 1;
+int ndiv = 512; 
+TString prepend = "full_";
 
 TString fa3zzTozz = "CMS_zz4l_fg4";
 TString fa3zzToww = "CMS_zz4l_fg4*6.36/( (1-CMS_zz4l_fg4)*3.01   + CMS_zz4l_fg4*6.36)";
@@ -38,26 +39,33 @@ class graph{
   void sort_vectors();
   void remove_initial_fit();
   void remove_outliers();
+  void kill_points();
   void redo_offset();
   void create_graph();
 
+  void min_prep();
   void do_all_prep();
+  void do_all_prep_keep_offset();
 
   void transform_x(TString transform);
 
   TString file_name;
+  std::vector<TString> file_name_vector;
+
   std::vector<double> x;
   std::vector<double> y;
+
+  std::vector<double> kill;
+
   TGraph* gr;
 
   TString scale = "1";
   TString x_variable = fa3zzTozz;
 
   //Style
-  TString legend_name;
-  //EColor color;
-  int color;
-  int linestyle;
+  TString legend_name = "";
+  int color = 1;
+  int linestyle = 1;
 
   bool verbose = false;
 };
@@ -68,17 +76,35 @@ graph::graph(){
 }
 
 void graph::get_raw_vectors(){
-  TFile* fin = TFile::Open(file_name, "READ");
-  if(fin->IsZombie()) {cout << "Problem with file " << file_name << endl; return;}
-  
-  TTree* limit = (TTree*)fin->Get("limit");
-  limit->Draw(scale+"*2*deltaNLL:"+x_variable);
-  
-  std::vector<double> v1(limit->GetV1(), limit->GetV1() + limit->GetSelectedRows());
-  std::vector<double> v2(limit->GetV2(), limit->GetV2() + limit->GetSelectedRows());
-  
-  y=v1;
-  x=v2;
+
+  if(file_name_vector.size() == 0){//for backwards compatability (consider removing)
+    TFile* fin = TFile::Open(file_name, "READ");
+    if(fin->IsZombie()) {cout << "Problem with file " << file_name << endl; return;}
+    
+    TTree* limit = (TTree*)fin->Get("limit");
+    limit->Draw(scale+"*2*deltaNLL:"+x_variable);
+    
+    std::vector<double> v1(limit->GetV1(), limit->GetV1() + limit->GetSelectedRows());
+    std::vector<double> v2(limit->GetV2(), limit->GetV2() + limit->GetSelectedRows());
+    
+    y=v1;
+    x=v2;
+  }
+  else{
+    TChain limit("limit");
+    for(int i=0; i<file_name_vector.size(); i++){
+      cout << "Adding " << file_name_vector[i] << endl;
+      limit.Add( file_name_vector[i] );
+    }
+
+    limit.Draw(scale+"*2*deltaNLL:"+x_variable);
+
+    std::vector<double> v1(limit.GetV1(), limit.GetV1() + limit.GetSelectedRows());
+    std::vector<double> v2(limit.GetV2(), limit.GetV2() + limit.GetSelectedRows());
+    
+    y=v1;
+    x=v2;
+  }
 
   return;
 }
@@ -117,6 +143,9 @@ void graph::remove_initial_fit(){
         y_out.push_back(y[i]);
         x_out.push_back(x[i]);
       }
+    else{
+      cout << "remove " << x[i] << " " << y[i] << endl; 
+    }
   }
   
   y.clear();
@@ -178,6 +207,46 @@ void graph::remove_outliers(){
 }
 
 
+void graph::kill_points(){
+  if(kill.size()==0) return;
+  if(verbose) cout << "Killing points for " << file_name << endl;
+  bool noClean = 0;
+
+  std::vector<double> y_out; 
+  std::vector<double> x_out;
+  
+  for(unsigned int i=0; i<y.size(); i++){
+
+    bool keep = 1;
+    for(unsigned int j=0; j<kill.size(); j+=2){
+      double small = kill[j];
+      double big = kill[j+1];
+      
+      if( x[i]>small && x[i]<big ) {
+	keep=0;
+	break;//only needs to fail once
+      }
+    }
+    if(keep){
+      if(verbose) cout << x[i] << " " <<  y[i] << endl;
+      y_out.push_back(y[i]);
+      x_out.push_back(x[i]);
+    }
+    else{
+      cout << "Removing: " << x[i] << " " <<  y[i] << endl;
+    }
+    
+  }
+  
+  y.clear();
+  x.clear();
+  y=y_out;
+  x=x_out;
+
+  return;
+}
+
+
 
 void graph::redo_offset(){
 
@@ -191,7 +260,8 @@ void graph::redo_offset(){
  if(fabs(min) > 0.1) cout << "WARNING!!! offset is " << min << endl;
 
  //apply offset if min<0
- if(min<0){
+ // if(min<0){
+ if(1){
    cout << "offset: " << min << endl;
    for(unsigned int i=0; i<y.size(); i++){
      y[i] = y[i] - min;
@@ -235,8 +305,36 @@ void graph::do_all_prep(){
   get_raw_vectors();
   //remove_initial_fit(); //not needed if sorting!
   sort_vectors();
+  kill_points();
   remove_outliers();
   redo_offset();
+  create_graph();
+
+  return;
+}
+
+void graph::do_all_prep_keep_offset(){
+  
+  cout << endl;
+  cout << file_name << endl;
+  
+  get_raw_vectors();
+  sort_vectors();
+  kill_points();
+  remove_outliers();
+  create_graph();
+
+  return;
+}
+
+
+void graph::min_prep(){
+  
+  cout << endl;
+  cout << file_name << endl;
+  
+  get_raw_vectors();
+  sort_vectors();
   create_graph();
 
   return;
@@ -284,7 +382,9 @@ class figure{
   double x_max=1;
   //int ndiv = 512;
   //int ndiv = 505;
-  
+  double leg_y_min = 0.7;
+  double leg_y_max = 0.87;
+
   TString figure_name;
   TString x_title = "x";
 
@@ -312,10 +412,10 @@ void figure::draw(){
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.15);
   gPad->Modified();
-  TString style = "L";
+  TString style = "LP";
 
-  double legy=0.7;
-  TLegend* leg = new TLegend(0.2, legy, .57, legy+0.17);
+  //double legy=0.7;
+  TLegend* leg = new TLegend(0.2, leg_y_min, .57, leg_y_max);
   leg->SetLineColor(0);
   leg->SetFillColor(0);
 
