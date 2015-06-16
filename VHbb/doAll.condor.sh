@@ -115,25 +115,25 @@ for card in `ls ${cardDir}/dataCard_*txt`; do
 
     command=${command}" -v 2; mv higgsCombine*root ${ID}.combine.root"
 
-cat <<EOF >/uscmst1b_scratch/lpc1/3DayLifetime/${USER}/condor.job
+cat <<EOF >condor.job
 universe = vanilla
-Executable = /uscmst1b_scratch/lpc1/3DayLifetime/${USER}/${ID}.sh
+Executable = ${ID}.sh
 Should_Transfer_Files = YES
 WhenToTransferOutput = ON_EXIT
 Output = condor.${ID}.out
 Error = condor.${ID}.err
-Log = /uscmst1b_scratch/lpc1/3DayLifetime/${USER}/condor.${ID}.log
+Log = condor.${ID}.log
 Notification = Never
 Queue 1
 EOF
 
-cat <<EOF >/uscmst1b_scratch/lpc1/3DayLifetime/${USER}/${ID}.sh
+cat <<EOF >${ID}.sh
 #!/bin/bash -x
 $command
 EOF
 
-    chmod +x /uscmst1b_scratch/lpc1/3DayLifetime/${USER}/$ID.sh
+    chmod +x $ID.sh
     sleep 1
-    condor_submit /uscmst1b_scratch/lpc1/3DayLifetime/${USER}/condor.job
+    condor_submit condor.job
 
 done
