@@ -78,7 +78,7 @@ for card in `ls ${cardDir}/dataCard_*txt`; do
 
     #--------------------------------------------------------
 
-    command="cd ${cardDir}; eval \`scramv1 runtime -sh\`; "
+    command="source /cvmfs/cms.cern.ch/cmsset_default.sh; cd ${cardDir}; eval \`scramv1 runtime -sh\`; "
     #command=${command}" cd ${execDir}; rm -rf ${ID}; mkdir ${ID}; cd ${ID}; "
     command=${command}" cd -; "
     command=${command}" cp -r "${cardDir}/templates_*" .; cp -r "${cardDir}/dataCard_*" .; text2workspace.py -m 125.6 $card -P HiggsAnalysis.CombinedLimit.HiggsJPC_combo:twoHypothesisHiggs --PO=muFloating -o ${ID}.text2workspace.root -v 7; combine -M MultiDimFit ${ID}.text2workspace.root "
