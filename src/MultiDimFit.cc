@@ -40,7 +40,6 @@ bool MultiDimFit::hasMaxDeltaNLLForProf_ = false;
 bool MultiDimFit::squareDistPoiStep_ = false;
 float MultiDimFit::maxDeltaNLLForProf_ = 200;
 
-
 MultiDimFit::MultiDimFit() :
     FitterAlgoBase("MultiDimFit specific options")
 {
@@ -237,9 +236,34 @@ void MultiDimFit::doGrid(RooAbsReal &nll)
     if (n == 1) {
 	// can do a more intellegent spacing of points
 //        for (unsigned int i = 0; i < points_; ++i) {
-        for (unsigned int i = 0; i < points_+1; ++i) {
+
+
+      //VHbb hack
+      std::vector<double> x_linear, x_zztozh, x_zhtozz, x_merged;
+      for(unsigned int i=0; i<points_; i++){
+	x_linear.push_back( (double)i/points_ );
+	x_zztozh.push_back( x_linear[i]*6.36/( (1-x_linear[i])*0.023868 + x_linear[i]*6.36) );
+	x_zhtozz.push_back( x_linear[i]*0.023868/( (1-x_linear[i])*6.36 + x_linear[i]*0.023868) );
+	//cout << x_linear[i] << " " << x_zztozh[i] << " " << x_zhtozz[i] << endl;
+      }
+
+      x_merged.insert( x_merged.end(), x_linear.begin(), x_linear.end() );
+      x_merged.insert( x_merged.end(), x_zztozh.begin(), x_zztozh.end() );
+      x_merged.insert( x_merged.end(), x_zhtozz.begin(), x_zhtozz.end() );
+
+      std::sort (x_merged.begin(), x_merged.end());
+      x_merged.erase( unique( x_merged.begin(), x_merged.end() ), x_merged.end() );
+
+      //for(unsigned int i=0; i<x_merged.size(); i++){
+      //   cout << x_merged[i] << endl;
+      //}
+
+
+      //for (unsigned int i = 0; i < points_+1; ++i) {
+      for (unsigned int i = 0; i < x_merged.size(); ++i) {
             if (i < firstPoint_) continue;
             if (i > lastPoint_)  break;
+	    /*
             double x =  pmin[0] + i*(pmax[0]-pmin[0])/points_; 
 						if(pmax[0]==1){
 								if( fabs(x)==1){
@@ -249,8 +273,9 @@ void MultiDimFit::doGrid(RooAbsReal &nll)
 										x+=0.000001;
 								}
 						}
-
-					
+	    */
+	    double x = x_merged[i];
+			
             //double x =  pmin[0] + (i+0.5)*(pmax[0]-pmin[0])/points_; 
 	    if (squareDistPoiStep_){
 		// distance between steps goes as ~square of distance from middle or range (could this be changed to from best fit value?)
@@ -259,7 +284,8 @@ void MultiDimFit::doGrid(RooAbsReal &nll)
 		else x = pmax[0]-TMath::Sqrt(2*(points_-i)*(phalf)*(phalf)/points_);
 	    }
 
-            if (verbose > 1) std::cout << "Point " << i << "/" << points_ << " " << poiVars_[0]->GetName() << " = " << x << std::endl;
+            //if (verbose > 1) std::cout << "Point " << i << "/" << points_ << " " << poiVars_[0]->GetName() << " = " << x << std::endl;
+	    if (verbose > 1) std::cout << "Point " << i << "/" << x_merged.size() << " " << poiVars_[0]->GetName() << " = " << x << std::endl;
             *params = snap; 
             poiVals_[0] = x;
             poiVars_[0]->setVal(x);
