@@ -123,7 +123,7 @@ class TwoHypotesisHiggs(PhysicsModel):
                 self.sigNorms = { True:'_times_CMS_zz4l_fg4', False:'_times_not_CMS_zz4l_fg4' }
                                     
             else:
-                self.modelBuilder.doVar("r[1,-4,4]");
+                self.modelBuilder.doVar("r[1,0,4]");
                 if self.muAsPOI:
                     print 'Treating r as a POI'
                     poi += ",r"
