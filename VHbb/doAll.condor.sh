@@ -85,8 +85,7 @@ for card in `ls ${cardDir}/dataCard_*txt`; do
 
     command=${command}" --setPhysicsModelParameters cww_zz=0.5,r_ww=1,r_box=1"
     
-    #HACK
-    #command=${command}",wh_medBoost_trend=0,wh_highBoost_trend=0,zh_medBoost_trend=0,zh_highBoost_trend=0"
+    command=${command}",wh_medBoost_trend=.3,wh_highBoost_trend=-.8,zh_medBoost_trend=.18,zh_highBoost_trend=-0.23"
 
     if [ $cmsStyle == 0 ]; then command=${command}",r=1,r_qq=1 "
     elif [ $commonMu == 1 ]; then   command=${command}",r_qq=1 "
@@ -100,7 +99,7 @@ for card in `ls ${cardDir}/dataCard_*txt`; do
     #HACK
     #command=${command}",wh_medBoost_trend,wh_highBoost_trend,zh_medBoost_trend,zh_highBoost_trend"
 
-    command=${command}" --setPhysicsModelParameterRanges CMS_zz4l_fg4=0,1 --algo=grid --points 100 -m 125.6 --minimizerTolerance=${tolerance} --maxFailedSteps=${maxSteps} --minimizerStrategy=${strategy}"
+    command=${command}" --setPhysicsModelParameterRanges CMS_zz4l_fg4=0,1 --algo=grid --points 50 -m 125.6 --minimizerTolerance=${tolerance} --maxFailedSteps=${maxSteps} --minimizerStrategy=${strategy}"
 
     if [ $minuit2 == 0 ]; then command=${command}" --minimizerAlgo=Minuit "
     fi
