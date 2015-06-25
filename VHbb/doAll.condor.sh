@@ -85,7 +85,7 @@ for card in `ls ${cardDir}/dataCard_*txt`; do
 
     command=${command}" --setPhysicsModelParameters cww_zz=0.5,r_ww=1,r_box=1"
     
-    command=${command}",wh_medBoost_trend=.3,wh_highBoost_trend=-.8,zh_medBoost_trend=.18,zh_highBoost_trend=-0.23"
+    if [ $expected == 0 ]; then command=${command}",wh_medBoost_trend=.3,wh_highBoost_trend=-.8,zh_medBoost_trend=.18,zh_highBoost_trend=-0.23"; fi
 
     if [ $cmsStyle == 0 ]; then command=${command}",r=1,r_qq=1 "
     elif [ $commonMu == 1 ]; then   command=${command}",r_qq=1 "
