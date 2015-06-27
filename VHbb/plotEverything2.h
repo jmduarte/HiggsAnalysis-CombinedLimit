@@ -44,13 +44,15 @@ class graph{
   void create_graph();
 
   void min_prep();
-  void do_all_prep();
-  void do_all_prep_keep_offset();
+  void do_all_prep(TString transformation = "fa3zzTozz");
+  void do_all_prep_keep_offset(TString transformation = "fa3zzTozz");
+  void do_all_prep_keep_outliers(TString transformation = "fa3zzTozz");
 
-  void transform_x(TString transform);
+  void transform_x(TString transform = "fa3zzTozz");
 
   TString file_name;
   std::vector<TString> file_name_vector;
+  std::vector<double> stitch_point_vector;
 
   std::vector<double> x;
   std::vector<double> y;
@@ -91,21 +93,51 @@ void graph::get_raw_vectors(){
     x=v2;
   }
   else{
+    /*
     TChain limit("limit");
     for(int i=0; i<file_name_vector.size(); i++){
       cout << "Adding " << file_name_vector[i] << endl;
       limit.Add( file_name_vector[i] );
     }
-
     limit.Draw(scale+"*2*deltaNLL:"+x_variable);
-
     std::vector<double> v1(limit.GetV1(), limit.GetV1() + limit.GetSelectedRows());
     std::vector<double> v2(limit.GetV2(), limit.GetV2() + limit.GetSelectedRows());
-    
     y=v1;
     x=v2;
-  }
+    */
 
+    //stitch
+    bool stitch_verbose = false;
+    for(int i=0; i<file_name_vector.size(); i++){
+      cout << "Vector " << file_name_vector[i] << endl;
+      cout << "Stitch " <<  stitch_point_vector[i] << endl;
+      TFile* fin = TFile::Open(file_name_vector[i], "READ");
+      if(fin->IsZombie()) {cout << "Problem with file " << file_name_vector[i] << endl; return;}
+      TTree* limit = (TTree*)fin->Get("limit");
+      limit->Draw(scale+"*2*deltaNLL:"+x_variable);
+      std::vector<double> v1(limit->GetV1(), limit->GetV1() + limit->GetSelectedRows());//y
+      std::vector<double> v2(limit->GetV2(), limit->GetV2() + limit->GetSelectedRows());//x
+      
+      for(unsigned int j=0; j<v2.size(); j++){
+	if(j==0){
+	  if(stitch_verbose) cout << v2[j] << " " << v1[j] << " " << stitch_point_vector[i] << endl;
+	  if(v2[j] < stitch_point_vector[i]){
+	    if(stitch_verbose) cout << "Add" << endl;
+	    x.push_back(v2[j]);
+	    y.push_back(v1[j]);
+	  }
+	}
+	else{
+	  if(stitch_verbose) cout << v2[j] << " " << v1[j] << endl;
+	  if(v2[j] < stitch_point_vector[i] && v2[j] >= stitch_point_vector[i-1]){
+	    if(stitch_verbose) cout << "Add" << endl;
+	    x.push_back(v2[j]);
+	    y.push_back(v1[j]);
+	  }
+	}
+      }
+    }
+  }
   return;
 }
 
@@ -233,7 +265,7 @@ void graph::kill_points(){
       x_out.push_back(x[i]);
     }
     else{
-      cout << "Removing: " << x[i] << " " <<  y[i] << endl;
+      cout << "Killing: " << x[i] << " " <<  y[i] << endl;
     }
     
   }
@@ -297,7 +329,7 @@ void graph::create_graph(){
 }
 
 
-void graph::do_all_prep(){
+void graph::do_all_prep(TString transformation){
   
   cout << endl;
   cout << file_name << endl;
@@ -308,12 +340,13 @@ void graph::do_all_prep(){
   kill_points();
   remove_outliers();
   redo_offset();
+  transform_x(transformation);
   create_graph();
 
   return;
 }
 
-void graph::do_all_prep_keep_offset(){
+void graph::do_all_prep_keep_offset(TString transformation){
   
   cout << endl;
   cout << file_name << endl;
@@ -322,6 +355,25 @@ void graph::do_all_prep_keep_offset(){
   sort_vectors();
   kill_points();
   remove_outliers();
+  transform_x(transformation);
+  create_graph();
+
+  return;
+}
+
+
+void graph::do_all_prep_keep_outliers(TString transformation){
+  
+  cout << endl;
+  cout << file_name << endl;
+  
+  get_raw_vectors();
+  //remove_initial_fit(); //not needed if sorting!
+  sort_vectors();
+  kill_points();
+  //remove_outliers();
+  redo_offset();
+  transform_x(transformation);
   create_graph();
 
   return;
@@ -345,7 +397,7 @@ void graph::transform_x(TString transformation){
   
   for(unsigned int i=0; i<x.size(); i++){
     
-    if(transformation == "fa3zzToww"){
+    if(transformation == "fa3zzTozz"){
       return;
     }
     else if(transformation == "fa3zzToww"){
@@ -372,7 +424,7 @@ void graph::transform_x(TString transformation){
 class figure{
  public:
   figure();
-  void draw();
+  void draw(TString style = "LP");
 
   std::vector<graph> graphs;
 
@@ -395,7 +447,7 @@ figure::figure(){
 
 }
 
-void figure::draw(){
+void figure::draw( TString style ){
 
   TCanvas* cs = new TCanvas("c "+figure_name, "c "+figure_name, 640, 640);
   cs->cd();
@@ -412,7 +464,7 @@ void figure::draw(){
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.15);
   gPad->Modified();
-  TString style = "LP";
+
 
   //double legy=0.7;
   TLegend* leg = new TLegend(0.2, leg_y_min, .57, leg_y_max);
