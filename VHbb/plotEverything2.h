@@ -14,6 +14,8 @@
 #include "TMultiGraph.h"
 #include "TLegend.h"
 #include "TLatex.h"
+#include "TLine.h"
+#include "TMath.h"
 
 using namespace std;
 
@@ -49,6 +51,9 @@ class graph{
   void do_all_prep_keep_outliers(TString transformation = "fa3zzTozz");
 
   void transform_x(TString transform = "fa3zzTozz");
+
+  void findCrossing(double y_value);
+  void findMin();
 
   TString file_name;
   std::vector<TString> file_name_vector;
@@ -341,6 +346,9 @@ void graph::do_all_prep(TString transformation){
   remove_outliers();
   redo_offset();
   transform_x(transformation);
+  findCrossing(1);
+  findCrossing(3.84);
+  findMin();
   create_graph();
 
   return;
@@ -356,6 +364,9 @@ void graph::do_all_prep_keep_offset(TString transformation){
   kill_points();
   remove_outliers();
   transform_x(transformation);
+  findCrossing(1);
+  findCrossing(3.84);
+  findMin();
   create_graph();
 
   return;
@@ -374,6 +385,9 @@ void graph::do_all_prep_keep_outliers(TString transformation){
   //remove_outliers();
   redo_offset();
   transform_x(transformation);
+  findCrossing(1);
+  findCrossing(3.84);
+  findMin();
   create_graph();
 
   return;
@@ -415,6 +429,62 @@ void graph::transform_x(TString transformation){
   return;
 }
 
+
+//LINEAR INTERPOLATION
+void graph::findCrossing(double y_value){
+
+  std::vector<double> x_values;
+  
+  double last_x = x[0];//to check sorting 
+  double last_y = y[0];
+  for(int i=1; i<x.size()-1; i++){//DOES NOT HANDLE FIRST AND LAST POINTS...
+    //cout << "i " << i << ", x " << x[i] << ", y " << y[i] << endl;
+    
+    assert(x[i] >= last_x);//to check sorting
+
+    //right on it
+    if(y_value == y[i]){    
+      x_values.push_back(x[i]);
+    }
+    //crossing from below
+    else if(y_value > last_y && y_value < y[i]){
+      double slope = (y[i] - last_y)/(x[i] - last_x);
+      double x_value = last_x + (y_value - last_y)/slope;
+      x_values.push_back(x_value);
+    }
+    //crossing from above
+    else if(y_value > y[i] && y_value < last_y){
+      double slope = (y[i] - last_y)/(x[i] - last_x);//SAME CODE... i forgot geometry
+      double x_value = last_x + (y_value - last_y)/slope;
+      x_values.push_back(x_value);
+    }
+
+    //for the next iteration
+    last_x = x[i];
+    last_y = y[i];
+  }
+
+  for(int i=0; i<x_values.size(); i++) cout << "crossing y = " << y_value << " at x = " << x_values[i] << endl;
+  if(x_values.size() == 0) cout << "No crossings at  y = " << y_value << " found." << endl;
+
+}
+
+
+void graph::findMin(){
+  //assumes only one min
+
+  double y_min = 99999;
+  unsigned int min_index = -99999;
+  for(unsigned int i = 0; i<x.size(); i++){
+    if(y[i] < y_min){
+      y_min = y[i];
+      min_index = i;
+    }
+  }
+  cout << "min y = " << y[min_index] << " at x = " << x[min_index] << endl;
+
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -434,8 +504,10 @@ class figure{
   double x_max=1;
   //int ndiv = 512;
   //int ndiv = 505;
-  double leg_y_min = 0.7;
+  double leg_y_min = 0.65;
   double leg_y_max = 0.87;
+  double leg_x_min = 0.2;
+  double leg_x_max = 0.65;
 
   TString figure_name;
   TString x_title = "x";
@@ -467,14 +539,20 @@ void figure::draw( TString style ){
 
 
   //double legy=0.7;
-  TLegend* leg = new TLegend(0.2, leg_y_min, .57, leg_y_max);
+  TLegend* leg = new TLegend(leg_x_min, leg_y_min, leg_x_max, leg_y_max);
   leg->SetLineColor(0);
   leg->SetFillColor(0);
 
+  double max = 0;
   for(unsigned int i=0; i<graphs.size(); i++){
     graphs[i].gr->Draw(style);
     leg->AddEntry(graphs[i].gr, graphs[i].legend_name, "l");
+
+    //get max
+    double this_max = TMath::MaxElement(graphs[i].gr->GetN(), graphs[i].gr->GetY());
+    if(this_max > max) max = this_max;
   }
+  cout << "Final max: " << max << endl;
   leg->Draw();
 
   TLatex* prelimTex = new TLatex();
@@ -483,8 +561,26 @@ void figure::draw( TString style ){
   prelimTex->SetTextAlign(31);//right
   prelimTex->SetTextFont(42);
   prelimTex->DrawLatex(0.88,0.91, "CMS Preliminary, 18.94 fb^{-1} at #sqrt{s} = 8 TeV");
+
+
+  int horizontal_style = 9;
+  double one_sigma = 1, CL95 = 3.84, CL99 = 6.63;
+  TLine* line_one_sigma  = new TLine(0, one_sigma,    1, one_sigma);
+  TLine* line_95CL_sigma = new TLine(0, CL95, 1, CL95);
+  TLine* line_99CL_sigma = new TLine(0, CL99, 1, CL99);
+  line_one_sigma->SetLineStyle(horizontal_style);
+  line_95CL_sigma->SetLineStyle(horizontal_style);
+  line_99CL_sigma->SetLineStyle(horizontal_style);
+
+  if(max>one_sigma) line_one_sigma->Draw();
+  if(max>CL95) line_95CL_sigma->Draw();
+  if(max>CL99) line_99CL_sigma->Draw();
+
+
   gPad->Update();
   cs->SaveAs(figure_name + "_graph.pdf");
   cs->SaveAs(figure_name + "_graph.png");
+  cs->SaveAs(figure_name + "_graph.eps");
+  cs->SaveAs(figure_name + "_graph.root");
 
 }
