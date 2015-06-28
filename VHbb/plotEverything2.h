@@ -423,6 +423,9 @@ void graph::transform_x(TString transformation){
     else if(transformation == "fa3zzTozh"){
       x[i] = x[i]*6.36/( (1-x[i])*0.023868 + x[i]*6.36);
     }
+    else if(transformation == "fa3zhTozz"){
+      x[i] = x[i]*0.023868/( (1-x[i])*6.36 + x[i]*0.023868);
+    }
     else assert(0);
   }
   
@@ -512,6 +515,9 @@ class figure{
   TString figure_name;
   TString x_title = "x";
 
+  //inset
+  bool doInset = false;
+
 };
 
 //constructor
@@ -576,6 +582,29 @@ void figure::draw( TString style ){
   if(max>CL95) line_95CL_sigma->Draw();
   if(max>CL99) line_99CL_sigma->Draw();
 
+  //inset
+  if(doInset){
+    gPad->Update();
+    TPad *subpad = new TPad("subpad","",0.53,0.45,0.88,0.8);
+    subpad->Draw();
+    subpad->cd();
+    TH1F* hs2 = cs->DrawFrame(0, 0, 0.01, 1);
+    hs2->GetXaxis()->SetNdivisions(505);
+    hs2->GetXaxis()->SetLabelSize(0.05);
+    hs2->GetYaxis()->SetLabelSize(0.05);
+    //hs2->GetXaxis()->SetTitleSize(0.05);
+    //hs2->GetYaxis()->SetTitleSize(0.05);
+    //hs2->GetYaxis()->SetTitleOffset(1.2);
+    //hs2->GetXaxis()->SetTitleOffset(1.2);
+    //hs2->GetXaxis()->SetTitle(x_title);
+    //hs2->GetYaxis()->SetTitle("-2 #Delta ln L");
+    //gPad->SetBottomMargin(0.14);
+    //gPad->SetLeftMargin(0.15);
+    //gPad->Modified();
+    for(unsigned int i=0; i<graphs.size(); i++){
+      graphs[i].gr->Draw(style);
+    }
+  }//doInset
 
   gPad->Update();
   cs->SaveAs(figure_name + "_graph.pdf");
