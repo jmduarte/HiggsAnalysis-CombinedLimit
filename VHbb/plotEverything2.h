@@ -25,7 +25,6 @@ using namespace std;
 //TString prepend = "zoom_";
 
 double global_x_max = 1;
-int ndiv = 512; 
 TString prepend = "full_";
 
 TString fa3zzTozz = "CMS_zz4l_fg4";
@@ -53,7 +52,7 @@ class graph{
   void transform_x(TString transform = "fa3zzTozz");
 
   void findCrossing(double y_value);
-  void findMin();
+  float findMin(bool print = true);
 
   TString file_name;
   std::vector<TString> file_name_vector;
@@ -346,9 +345,9 @@ void graph::do_all_prep(TString transformation){
   remove_outliers();
   redo_offset();
   transform_x(transformation);
+  findMin();
   findCrossing(1);
   findCrossing(3.84);
-  findMin();
   create_graph();
 
   return;
@@ -364,9 +363,9 @@ void graph::do_all_prep_keep_offset(TString transformation){
   kill_points();
   remove_outliers();
   transform_x(transformation);
+  findMin();
   findCrossing(1);
   findCrossing(3.84);
-  findMin();
   create_graph();
 
   return;
@@ -385,9 +384,9 @@ void graph::do_all_prep_keep_outliers(TString transformation){
   //remove_outliers();
   redo_offset();
   transform_x(transformation);
+  findMin();
   findCrossing(1);
   findCrossing(3.84);
-  findMin();
   create_graph();
 
   return;
@@ -408,23 +407,35 @@ void graph::min_prep(){
 
 
 void graph::transform_x(TString transformation){
-  
+  // f_old R_old / [(1-f_old)R_new + f_old R_old], where R = sigma1/sigma3
+  // 7 TeV: Rzz=6.36, Rww=3.01, Rzh=0.0249, Rwh=0.0181
+  // 8 TeV: Rzz=6.36, Rww=3.01, Rzh=0.023868, Rwh=0.017382
+
   for(unsigned int i=0; i<x.size(); i++){
     
     if(transformation == "fa3zzTozz"){
+      if(i==0) cout << "x axis is in scan variable" << endl;
       return;
     }
     else if(transformation == "fa3zzToww"){
+      if(i==0) cout << "x axis is fa3ww" << endl;
       x[i] = x[i]*6.36/( (1-x[i])*3.01   + x[i]*6.36);
     }
     else if(transformation == "fa3zzTowh"){
+      if(i==0) cout << "x axis is fa3wh" << endl;
       x[i] = x[i]*6.36/( (1-x[i])*0.017382 + x[i]*6.36);
     }
     else if(transformation == "fa3zzTozh"){
+      if(i==0) cout << "x axis is fa3zh" << endl;
       x[i] = x[i]*6.36/( (1-x[i])*0.023868 + x[i]*6.36);
     }
     else if(transformation == "fa3zhTozz"){
+      if(i==0) cout << "x axis is fa3zz" << endl;
       x[i] = x[i]*0.023868/( (1-x[i])*6.36 + x[i]*0.023868);
+    }
+    else if(transformation == "fa3zhToww"){
+      if(i==0) cout << "x axis is fa3ww" << endl;
+      x[i] = x[i]*0.023868/( (1-x[i])*3.01 + x[i]*0.023868);
     }
     else assert(0);
   }
@@ -440,7 +451,7 @@ void graph::findCrossing(double y_value){
   
   double last_x = x[0];//to check sorting 
   double last_y = y[0];
-  for(int i=1; i<x.size()-1; i++){//DOES NOT HANDLE FIRST AND LAST POINTS...
+  for(unsigned int i=1; i<x.size()-1; i++){//DOES NOT HANDLE FIRST AND LAST POINTS...
     //cout << "i " << i << ", x " << x[i] << ", y " << y[i] << endl;
     
     assert(x[i] >= last_x);//to check sorting
@@ -467,13 +478,23 @@ void graph::findCrossing(double y_value){
     last_y = y[i];
   }
 
-  for(int i=0; i<x_values.size(); i++) cout << "crossing y = " << y_value << " at x = " << x_values[i] << endl;
+  float min = findMin(false);
+  float left = 0, right = 1;
   if(x_values.size() == 0) cout << "No crossings at  y = " << y_value << " found." << endl;
+  else{
+    for(unsigned int i=0; i<x_values.size(); i++){
+      cout << "crossing y = " << y_value << " at x = " << x_values[i] << endl;
+
+      if( (x_values[i]<min) && (min-x_values[i])<(min-left) ) left = x_values[i];
+      if( (x_values[i]>min) && (x_values[i]-min)<(right-min) ) right = x_values[i];
+    }
+  }
+  cout << "   => fa3 = " << min << "^{+" << right-min << "}_{-" << min-left << "}" << endl; 
 
 }
 
 
-void graph::findMin(){
+float graph::findMin(bool print){
   //assumes only one min
 
   double y_min = 99999;
@@ -484,8 +505,8 @@ void graph::findMin(){
       min_index = i;
     }
   }
-  cout << "min y = " << y[min_index] << " at x = " << x[min_index] << endl;
-
+  if(print) cout << "min y = " << y[min_index] << " at x = " << x[min_index] << endl;
+  return x[min_index];
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -507,6 +528,7 @@ class figure{
   double x_max=1;
   //int ndiv = 512;
   //int ndiv = 505;
+  int ndiv = 512; 
   double leg_y_min = 0.65;
   double leg_y_max = 0.87;
   double leg_x_min = 0.2;
@@ -571,9 +593,9 @@ void figure::draw( TString style ){
 
   int horizontal_style = 9;
   double one_sigma = 1, CL95 = 3.84, CL99 = 6.63;
-  TLine* line_one_sigma  = new TLine(0, one_sigma,    1, one_sigma);
-  TLine* line_95CL_sigma = new TLine(0, CL95, 1, CL95);
-  TLine* line_99CL_sigma = new TLine(0, CL99, 1, CL99);
+  TLine* line_one_sigma  = new TLine(x_min, one_sigma, x_max, one_sigma);
+  TLine* line_95CL_sigma = new TLine(x_min, CL95, x_max, CL95);
+  TLine* line_99CL_sigma = new TLine(x_min, CL99, x_max, CL99);
   line_one_sigma->SetLineStyle(horizontal_style);
   line_95CL_sigma->SetLineStyle(horizontal_style);
   line_99CL_sigma->SetLineStyle(horizontal_style);
@@ -607,9 +629,9 @@ void figure::draw( TString style ){
   }//doInset
 
   gPad->Update();
-  cs->SaveAs(figure_name + "_graph.pdf");
-  cs->SaveAs(figure_name + "_graph.png");
-  cs->SaveAs(figure_name + "_graph.eps");
-  cs->SaveAs(figure_name + "_graph.root");
+  cs->SaveAs(figure_name + ".pdf");
+  cs->SaveAs(figure_name + ".png");
+  cs->SaveAs(figure_name + ".eps");
+  cs->SaveAs(figure_name + ".root");
 
 }
