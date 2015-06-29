@@ -42,10 +42,10 @@ def readOldDataCard(filename):
     	else: data.append(line.strip().split())
     return data, bin, process
 
-def walk_and_copy(inputdir, input2Ddir, outputdir, threshold, thresholdBG, binList, processLists, p0m, p1m, p0h, p1h):
+def walk_and_copy(inputdir, input2Ddir, outputdir, threshold, thresholdBG, thresholdSignal, binList, processLists, p0m, p1m, p0h, p1h):
     ''' Recursive function which copies from inputdir to outputdir '''
     dataStat = []
-    dataTrend= []
+    dataTrend= ['dummy']
     allProcesses = processLists[0][1:]
     backgProcesses = processLists[0][processLists[1].index('0')+1:]
     #print allProcesses
@@ -64,6 +64,12 @@ def walk_and_copy(inputdir, input2Ddir, outputdir, threshold, thresholdBG, binLi
         for histo in histos:
             th1 = inputdir.Get(histo)
             th1totBG = inputdir.Get(histo[:histo.find("__")+2]+'totalBackground')
+            if 'Vtype2' in histo[:histo.find("__")+2] or 'Vtype3' in histo[:histo.find("__")+2]:
+            	th10P = inputdir.Get(histo[:histo.find("__")+2]+'Wh_125p6_0P')
+            	th10M = inputdir.Get(histo[:histo.find("__")+2]+'Wh_125p6_0M')
+            if 'Vtype0' in histo[:histo.find("__")+2] or 'Vtype1' in histo[:histo.find("__")+2]:
+            	th10P = inputdir.Get(histo[:histo.find("__")+2]+'Zh_125p6_0P')
+            	th10M = inputdir.Get(histo[:histo.find("__")+2]+'Zh_125p6_0M')
             outputdir.cd()
             th1.Write()
             
@@ -78,13 +84,17 @@ def walk_and_copy(inputdir, input2Ddir, outputdir, threshold, thresholdBG, binLi
                         error = th1.GetBinError(ibin)
                         val = th1.GetBinContent(ibin)
                         valtotBG = th1totBG.GetBinContent(ibin)
+                        val0P = th10P.GetBinContent(ibin)
+                        val0M = th10M.GetBinContent(ibin)
                         checkTotBG = False
+                        checkSignal0P = val0P/valtotBG > thresholdSignal/100
+                        checkSignal0M = val0M/valtotBG > thresholdSignal/100
                         if valtotBG == 0: 
                         	checkTotBG = True
                         	print "WARNING! EMPTY BIN IN THE TOTAL BACKGROUND!!!"
                         if valtotBG != 0: checkTotBG = error/valtotBG > thresholdBG/100
                         # Check if we are above threshold
-                        if (error/val > threshold/100 and checkTotBG):
+                        if (error/val > threshold/100 and checkTotBG and (checkSignal0P or checkSignal0M)):
                             vtype = histo[histo.find("Vtype"):histo.find("Vtype")+6]
                             boost = histo[histo.find("Vtype")+7:histo.find("__")]
                             process0 = histo[histo.find("__")+2:]
@@ -109,8 +119,8 @@ def walk_and_copy(inputdir, input2Ddir, outputdir, threshold, thresholdBG, binLi
             do_TrendShapes = histo[histo.find("__")+2:] in allProcesses
             if do_TrendShapes:
                 logT.info("Building trend shapes for %s", histo)
-                one = "5"
-                isCorrelatedBkg = 0
+                one = "2"
+                isCorrelatedBkg = 1
                 if 'med' in histo: 
                 	p0 = p0m
                 	p1 = p1m
@@ -143,12 +153,12 @@ def walk_and_copy(inputdir, input2Ddir, outputdir, threshold, thresholdBG, binLi
                 	liste = [channel+'_'+boost+process+'_trend','shape']
                 	for i in range(len(binList)-1):
                 		if not isCorrelatedBkg:
-                			if ((boost in binList[i+1]) and (process[1:]==allProcesses[i])): liste.append(one)
+                			if boost in binList[i+1] and process[1:]==allProcesses[i]: liste.append(one)
                 			else: liste.append(none)
                 		if isCorrelatedBkg:
-                			if allProcesses[i] in backgProcesses: liste.append(one)
+                			if boost in binList[i+1] and allProcesses[i] in backgProcesses: liste.append(one)
                 			else: liste.append(none)
-                	dataTrend.append(liste)
+                	if liste not in dataTrend: dataTrend.append(liste)
                 outputdir.cd()
                 err_up.Write()
                 err_down.Write()
@@ -159,18 +169,18 @@ def walk_and_copy(inputdir, input2Ddir, outputdir, threshold, thresholdBG, binLi
             output_subdir = outputdir.mkdir(subdir)
             # Recurse
             walk_and_copy(
-                inputdir.Get(subdir), output_subdir, 
-                threshold, thresholdBG, binList, processLists)
-    return dataStat, dataTrend
+                inputdir.Get(subdir), input2Ddir, output_subdir, 
+                threshold, thresholdBG, thresholdSignal, binList, processLists, p0m, p1m, p0h, p1h)
+    return dataStat, dataTrend[1:]
 
-def main(inputRfilename, input2dRfilename, outputRfilename, inputDCfilename, outputDCfilename, threshold, thresholdBG, p0m, p1m, p0h, p1h):
+def main(inputRfilename, input2dRfilename, outputRfilename, inputDCfilename, outputDCfilename, threshold, thresholdBG, thresholdSignal, p0m, p1m, p0h, p1h):
     input = ROOT.TFile(inputRfilename, 'READ')
     input2d = ROOT.TFile(input2dRfilename, 'READ')
     output = ROOT.TFile(outputRfilename, 'RECREATE')
     data = []
     olddata, binList, processLists = readOldDataCard(inputDCfilename)
     data += olddata
-    newdataS, newdataT = walk_and_copy(input, input2d, output, threshold, thresholdBG, binList, processLists, p0m, p1m, p0h, p1h)
+    newdataS, newdataT = walk_and_copy(input, input2d, output, threshold, thresholdBG, thresholdSignal, binList, processLists, p0m, p1m, p0h, p1h)
     data += newdataT
     data += newdataS
     out=open(outputDCfilename,'w')
@@ -211,6 +221,9 @@ if __name__ == "__main__":
     
     if len(sys.argv)>11:p1h = sys.argv[11]
     else:               p1h = -0.000287
+    
+    if len(sys.argv)>12:thresholdSignal = sys.argv[12]
+    else:               thresholdSignal = 0
 
     '''
     prefix = "/uscms_data/d3/ssagir/WlnuHbbAnalysis/CMSSW_5_3_6/src/VHbb/post/plots"
@@ -223,4 +236,4 @@ if __name__ == "__main__":
     
     log.info("Building shape systematics. input: %s output: %s",
              inputRfile, outputRfile)
-    main(inputRfile, input2dRfile, outputRfile, inputDataCard, outputDataCard, float(threshold), float(thresholdBG), float(p0m), float(p1m), float(p0h), float(p1h))
+    main(inputRfile, input2dRfile, outputRfile, inputDataCard, outputDataCard, float(threshold), float(thresholdBG), float(thresholdSignal), float(p0m), float(p1m), float(p0h), float(p1h))
