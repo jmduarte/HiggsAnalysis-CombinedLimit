@@ -31,7 +31,7 @@ void make_plot2D(bool observed = 0, TString filename = "higgsCombine2D.MultiDimF
   c_population->cd();
   //limit->Draw("r:CMS_zz4l_fg4>>h_population","(r!=2)", "COLZ");
   limit->Draw("r:CMS_zz4l_fg4>>h_population","(deltaNLL!=0 && r!=2)", "COLZ");
-  c_population->SaveAs("c_population.png");
+  c_population->SaveAs("c_population"+outname+".png");
 
   TCanvas* c_deltanll = new TCanvas("c_deltanll", "c_deltanll", 640, 640);
   c_deltanll->cd();
@@ -86,10 +86,13 @@ void make_plot2D(bool observed = 0, TString filename = "higgsCombine2D.MultiDimF
   TMarker marker_fit(CMS_zz4l_fg4,r,20);
   marker_fit.SetMarkerSize(1.3);
 
+  TString channel = "ZH";
+  if(outname.Contains("Wh") || outname.Contains("WH")) channel = "WH";
+
   //Style
   h_nll->SetTitle("");
-  h_nll->GetXaxis()->SetTitle("f_{a3}^{ZH}");
-  h_nll->GetYaxis()->SetTitle("#mu^{ZH}");
+  h_nll->GetXaxis()->SetTitle("f_{a3}^{"+channel+"}");
+  h_nll->GetYaxis()->SetTitle("#mu^{"+channel+"}");
   h_nll->GetZaxis()->SetTitle("-2#DeltalnL");
   h_nll->GetYaxis()->SetRangeUser(0,1.9);
   h_nll->GetXaxis()->SetTitleSize(0.05);
@@ -139,7 +142,15 @@ void make_plot2D(bool observed = 0, TString filename = "higgsCombine2D.MultiDimF
 
 void plot2D(){
 
-  make_plot2D(1,"/eos/uscms/store/user/lpcmbja/noreplica/2D_zhDR_p0plusp1_050915_correlatedBkg_sigThrsld2.5_deCorrdMedHighNuis_trendGuessObserved_rfix/Vh_CMS_common_observed_minuit_0p1_tries5_strategy1_npoints1600.combine.root", "", 41);
+  //make_plot2D(1,"/eos/uscms/store/user/lpcmbja/noreplica/2D_zhDR_p0plusp1_050915_correlatedBkg_sigThrsld2.5_deCorrdMedHighNuis_trendGuessObserved_rfix/Vh_CMS_common_observed_minuit_0p1_tries5_strategy1_npoints1600.combine.root", "", 41);
   //make_plot2D(1,"/eos/uscms/store/user/lpcmbja/noreplica/2D_zhDR_p0plusp1_050915_correlatedBkg_sigThrsld2.5_deCorrdMedHighNuis_trendGuessObserved_rfix/Vh_CMS_common_expected_minuit_0p1_tries5_strategy1_npoints1600.combine.root", "_expected", 41);
+
+  make_plot2D(1,"/eos/uscms/store/user/lpcmbja/noreplica/2D_zhDR_p0plusp1_050915_correlatedBkg_sigThrsld2.5_deCorrdMedHighNuis_trendGuessObserved_rfix_WHZH/Zh_CMS_common_observed_minuit_0p1_tries5_strategy1_npoints1600.combine.root", "_Zh", 41);
+  make_plot2D(1,"/eos/uscms/store/user/lpcmbja/noreplica/2D_zhDR_p0plusp1_050915_correlatedBkg_sigThrsld2.5_deCorrdMedHighNuis_trendGuessObserved_rfix_WHZH/Zh_CMS_common_expected_minuit_0p1_tries5_strategy1_npoints1600.combine.root", "_Zh_expected", 41);
+
+  //WH in fa3wh
+  //make_plot2D(1,"/eos/uscms/store/user/lpcmbja/noreplica/2D_zhDR_p0plusp1_050915_correlatedBkg_sigThrsld2.5_deCorrdMedHighNuis_trendGuessObserved_rfix_WHZH/Wh_CMS_common_observed_minuit_0p1_tries5_strategy1_npoints1600.combine.root", "_Wh", 41);
+  make_plot2D(1,"/eos/uscms/store/user/lpcmbja/noreplica/2D_zhDR_p0plusp1_050915_correlatedBkg_sigThrsld2.5_deCorrdMedHighNuis_trendGuessObserved_rfix_WHZH/Wh_CMS_common_observed_minuit2_0p1_tries5_strategy0_npoints1600.combine.root", "_Wh", 41);
+  make_plot2D(1,"/eos/uscms/store/user/lpcmbja/noreplica/2D_zhDR_p0plusp1_050915_correlatedBkg_sigThrsld2.5_deCorrdMedHighNuis_trendGuessObserved_rfix_WHZH/Wh_CMS_common_expected_minuit_0p1_tries5_strategy1_npoints1600.combine.root", "_Wh_expected", 41);
 
 }

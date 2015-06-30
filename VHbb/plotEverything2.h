@@ -89,6 +89,7 @@ void graph::get_raw_vectors(){
     
     TTree* limit = (TTree*)fin->Get("limit");
     limit->Draw(scale+"*2*deltaNLL:"+x_variable);
+    if(scale != "1") cout << "SCALED BY " << scale << endl;
     
     std::vector<double> v1(limit->GetV1(), limit->GetV1() + limit->GetSelectedRows());
     std::vector<double> v2(limit->GetV2(), limit->GetV2() + limit->GetSelectedRows());
@@ -437,6 +438,10 @@ void graph::transform_x(TString transformation){
       if(i==0) cout << "x axis is fa3ww" << endl;
       x[i] = x[i]*0.023868/( (1-x[i])*3.01 + x[i]*0.023868);
     }
+    else if(transformation == "fa3wwTowh"){
+      if(i==0) cout << "x axis is fa3ww" << endl;
+      x[i] = x[i]*3.01/( (1-x[i])*0.017382 + x[i]*3.01);
+    }
     else assert(0);
   }
   
@@ -583,13 +588,16 @@ void figure::draw( TString style ){
   cout << "Final max: " << max << endl;
   leg->Draw();
 
+  //old
   TLatex* prelimTex = new TLatex();
   prelimTex->SetNDC();
   prelimTex->SetTextSize(0.03);
   prelimTex->SetTextAlign(31);//right
   prelimTex->SetTextFont(42);
   prelimTex->DrawLatex(0.88,0.91, "CMS Preliminary, 18.94 fb^{-1} at #sqrt{s} = 8 TeV");
-
+  /////////////////////////////////////////////
+  // the above should be replaced by https://ghm.web.cern.ch/ghm/plots/
+  //////////////////////////////////////////////
 
   int horizontal_style = 9;
   double one_sigma = 1, CL95 = 3.84, CL99 = 6.63;
