@@ -17,6 +17,10 @@
 #include "TLine.h"
 #include "TMath.h"
 
+#include "TPad.h"
+#include "TBox.h"
+#include "TASImage.h"
+
 using namespace std;
 
 
@@ -37,7 +41,7 @@ class graph{
  public:
   graph();
   void get_raw_vectors();
-  void add_point();
+  void add_last_point(bool doit = false);
   void sort_vectors();
   void remove_initial_fit();
   void remove_outliers();
@@ -62,11 +66,10 @@ class graph{
   std::vector<double> stitch_point_vector;
   std::vector<double> match_point_vector;
 
-  std::vector<double> add_point_x;
-  std::vector<double> add_point_y;
-
   std::vector<double> x;
   std::vector<double> y;
+
+  bool add_last_point_switch = false;
 
   std::vector<double> kill;
 
@@ -168,14 +171,14 @@ void graph::get_raw_vectors(){
 
 	//find min
 	double min = 999999999;
-	for(unsigned int i=0; i<v1.size(); i++){
-	  if(v1[i] < min) min=v1[i];
+	for(unsigned int k=0; k<v1.size(); k++){
+	  if(v1[k] < min) min=v1[k];
 	}
 	//if(fabs(min) > 0.1) cout << "WARNING!!! offset is " << min << endl;
 	if(1){
 	  cout << "offset: " << min << endl;
-	  for(unsigned int i=0; i<v1.size(); i++){
-	    v1[i] = v1[i] - min;
+	  for(unsigned int k=0; k<v1.size(); k++){
+	    v1[k] = v1[k] - min;
 	  }
 	}
 	else{
@@ -207,7 +210,13 @@ void graph::get_raw_vectors(){
 }
 
 
-void graph::add_point(){
+void graph::add_last_point(bool doit){
+
+  if(doit){
+    x.push_back(1);
+    y.push_back(y[y.size()-1]);
+    //y.push_back( *y.back() );
+  }
   
 }
 
@@ -405,6 +414,7 @@ void graph::do_all_prep(TString transformation){
   
   get_raw_vectors();
   //remove_initial_fit(); //not needed if sorting!
+  add_last_point(add_last_point_switch);
   sort_vectors();
   kill_points();
   remove_outliers();
@@ -424,6 +434,7 @@ void graph::do_all_prep_keep_offset(TString transformation){
   cout << file_name << endl;
   
   get_raw_vectors();
+  add_last_point(add_last_point_switch);
   sort_vectors();
   kill_points();
   remove_outliers();
@@ -443,6 +454,7 @@ void graph::do_all_prep_keep_outliers(TString transformation){
   cout << file_name << endl;
   
   get_raw_vectors();
+  add_last_point(add_last_point_switch);
   //remove_initial_fit(); //not needed if sorting!
   sort_vectors();
   kill_points();
@@ -579,16 +591,20 @@ float graph::findMin(bool print){
   return x[min_index];
 }
 
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-   
+
 class figure{
  public:
   figure();
   void draw(TString style = "LP");
+
+  void CMS_lumi( TPad* pad, int iPeriod=2, int iPosX=11 );
 
   std::vector<graph> graphs;
 
@@ -653,16 +669,27 @@ void figure::draw( TString style ){
   cout << "Final max: " << max << endl;
   leg->Draw();
 
-  //old
-  TLatex* prelimTex = new TLatex();
-  prelimTex->SetNDC();
-  prelimTex->SetTextSize(0.03);
-  prelimTex->SetTextAlign(31);//right
-  prelimTex->SetTextFont(42);
-  prelimTex->DrawLatex(0.88,0.91, "CMS Preliminary, 18.94 fb^{-1} at #sqrt{s} = 8 TeV");
-  /////////////////////////////////////////////
-  // the above should be replaced by https://ghm.web.cern.ch/ghm/plots/
-  //////////////////////////////////////////////
+  bool oldStyle = true;
+  if(oldStyle){
+    TLatex* prelimTex = new TLatex();
+    prelimTex->SetNDC();
+    prelimTex->SetTextSize(0.03);
+    prelimTex->SetTextAlign(31);//right
+    prelimTex->SetTextFont(42);
+    prelimTex->DrawLatex(0.88,0.91, "CMS Preliminary, 18.94 fb^{-1} at #sqrt{s} = 8 TeV");
+  }
+  else{
+    /////////////////////////////////////////////
+    // the above should be replaced by https://ghm.web.cern.ch/ghm/plots/
+    //////////////////////////////////////////////
+    // second parameter in example_plot is iPos, which drives the position of the CMS logo in the plot
+    // iPos=11 : top-left, left-aligned
+    // iPos=33 : top-right, right-aligned
+    // iPos=22 : center, centered
+    // mode generally : 
+    //   iPos = 10*(alignement 1/2/3) + position (1/2/3 = left/center/right)
+    CMS_lumi( cs );
+  }
 
   int horizontal_style = 9;
   double one_sigma = 1, CL95 = 3.84, CL99 = 6.63;
@@ -706,5 +733,227 @@ void figure::draw( TString style ){
   cs->SaveAs(figure_name + ".png");
   cs->SaveAs(figure_name + ".eps");
   cs->SaveAs(figure_name + ".root");
+  cs->SaveAs(figure_name + ".C");
 
 }
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+//                                       Style
+
+
+
+void figure::CMS_lumi( TPad* pad, int iPeriod, int iPosX ){            
+
+  //h file
+
+  // Global
+  TString cmsText     = "CMS";
+  float cmsTextFont   = 61;  // default is helvetic-bold
+  
+  bool writeExtraText = true;
+  TString extraText   = "Preliminary";
+  float extraTextFont = 52;  // default is helvetica-italics
+  
+  // text sizes and text offsets with respect to the top frame
+  // in unit of the top margin size
+  /*
+  float lumiTextSize     = 0.6;
+  float lumiTextOffset   = 0.2;
+  float cmsTextSize      = 0.75;
+  float cmsTextOffset    = 0.1;  // only used in outOfFrame version
+  */
+  float lumiTextSize     = 0.4;
+  float lumiTextOffset   = 0.1;
+  float cmsTextSize      = 0.75*.4/.6;
+  float cmsTextOffset    = 0.05;  // only used in outOfFrame version
+  
+  float relPosX    = 0.045;
+  float relPosY    = 0.035;
+  float relExtraDY = 1.2;
+  //float relExtraDY = 0;
+  
+  // ratio of "CMS" and extra text size
+  float extraOverCmsTextSize  = 0.76;
+  
+  TString lumi_13TeV = "20.1 fb^{-1}";
+  TString lumi_8TeV  = "18.9 fb^{-1}";
+  TString lumi_7TeV  = "5.1 fb^{-1}";
+
+  bool drawLogo      = false;
+
+
+  //C file
+
+  bool outOfFrame    = true;
+  if( iPosX/10==0 ) 
+    {
+      outOfFrame = true;
+    }
+  int alignY_=3;
+  int alignX_=2;
+  if( iPosX/10==0 ) alignX_=1;
+  if( iPosX==0    ) alignX_=1;
+  if( iPosX==0    ) alignY_=1;
+  if( iPosX/10==1 ) alignX_=1;
+  if( iPosX/10==2 ) alignX_=2;
+  if( iPosX/10==3 ) alignX_=3;
+  if( iPosX == 0  ) relPosX = 0.12;
+  int align_ = 10*alignX_ + alignY_;
+
+  float H = pad->GetWh();
+  float W = pad->GetWw();
+  float l = pad->GetLeftMargin();
+  float t = pad->GetTopMargin();
+  float r = pad->GetRightMargin();
+  float b = pad->GetBottomMargin();
+  //  float e = 0.025;
+
+  pad->cd();
+
+  TString lumiText;
+  if( iPeriod==1 )
+    {
+      lumiText += lumi_7TeV;
+      lumiText += " (7 TeV)";
+    }
+  else if ( iPeriod==2 )
+    {
+      lumiText += lumi_8TeV;
+      lumiText += " (8 TeV)";
+    }
+  else if( iPeriod==3 ) 
+    {
+      lumiText = lumi_8TeV; 
+      lumiText += " (8 TeV)";
+      lumiText += " + ";
+      lumiText += lumi_7TeV;
+      lumiText += " (7 TeV)";
+    }
+  else if ( iPeriod==4 )
+    {
+      lumiText += lumi_13TeV;
+      lumiText += " (13 TeV)";
+    }
+  else if ( iPeriod==7 )
+    { 
+      if( outOfFrame ) lumiText += "#scale[0.85]{";
+      lumiText += lumi_13TeV; 
+      lumiText += " (13 TeV)";
+      lumiText += " + ";
+      lumiText += lumi_8TeV; 
+      lumiText += " (8 TeV)";
+      lumiText += " + ";
+      lumiText += lumi_7TeV;
+      lumiText += " (7 TeV)";
+      if( outOfFrame) lumiText += "}";
+    }
+  else if ( iPeriod==12 )
+    {
+      lumiText += "8 TeV";
+    }
+   
+  cout << lumiText << endl;
+
+  TLatex latex;
+  latex.SetNDC();
+  latex.SetTextAngle(0);
+  latex.SetTextColor(kBlack);    
+
+  float extraTextSize = extraOverCmsTextSize*cmsTextSize;
+
+  latex.SetTextFont(42);
+  latex.SetTextAlign(31); 
+  latex.SetTextSize(lumiTextSize*t);    
+  latex.DrawLatex(1-r,1-t+lumiTextOffset*t,lumiText);
+
+  if( outOfFrame )
+    {
+      latex.SetTextFont(cmsTextFont);
+      latex.SetTextAlign(11); 
+      latex.SetTextSize(cmsTextSize*t);    
+      latex.DrawLatex(l,1-t+lumiTextOffset*t,cmsText);
+    }
+  
+  pad->cd();
+
+  float posX_=0;
+  if( iPosX%10<=1 )
+    {
+      posX_ =   l + relPosX*(1-l-r);
+    }
+  else if( iPosX%10==2 )
+    {
+      posX_ =  l + 0.5*(1-l-r);
+    }
+  else if( iPosX%10==3 )
+    {
+      posX_ =  1-r - relPosX*(1-l-r);
+    }
+  float posY_ = 1-t - relPosY*(1-t-b);
+  if( !outOfFrame )
+    {
+      if( drawLogo )
+	{
+	  posX_ =   l + 0.045*(1-l-r)*W/H;
+	  posY_ = 1-t - 0.045*(1-t-b);
+	  float xl_0 = posX_;
+	  float yl_0 = posY_ - 0.15;
+	  float xl_1 = posX_ + 0.15*H/W;
+	  float yl_1 = posY_;
+	  TASImage* CMS_logo = new TASImage("CMS-BW-label.png");
+	  TPad* pad_logo = new TPad("logo","logo", xl_0, yl_0, xl_1, yl_1 );
+	  pad_logo->Draw();
+	  pad_logo->cd();
+	  CMS_logo->Draw("X");
+	  pad_logo->Modified();
+	  pad->cd();
+	}
+      else
+	{
+	  latex.SetTextFont(cmsTextFont);
+	  latex.SetTextSize(cmsTextSize*t);
+	  latex.SetTextAlign(align_);
+	  latex.DrawLatex(posX_, posY_, cmsText);
+	  if( writeExtraText ) 
+	    {
+	      latex.SetTextFont(extraTextFont);
+	      latex.SetTextAlign(align_);
+	      latex.SetTextSize(extraTextSize*t);
+	      latex.DrawLatex(posX_, posY_- relExtraDY*cmsTextSize*t, extraText);
+	    }
+	}
+    }
+  else if( writeExtraText )
+    {
+      if( iPosX==0) 
+	{
+	  posX_ =   l +  relPosX*(1-l-r);
+	  posY_ =   1-t+lumiTextOffset*t;
+	}
+      latex.SetTextFont(extraTextFont);
+      latex.SetTextSize(extraTextSize*t);
+      latex.SetTextAlign(align_);
+      cout << "posY_ " << posY_ << endl;
+      //latex.DrawLatex(posX_, posY_, extraText);      
+      latex.DrawLatex(posX_+.08, posY_+.063, extraText);      
+    }
+  return;
+}
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
