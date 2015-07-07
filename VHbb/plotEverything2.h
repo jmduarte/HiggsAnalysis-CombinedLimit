@@ -37,12 +37,15 @@ class graph{
  public:
   graph();
   void get_raw_vectors();
+  void add_point();
   void sort_vectors();
   void remove_initial_fit();
   void remove_outliers();
   void kill_points();
   void redo_offset();
   void create_graph();
+
+  double match(std::vector<double> v1_first, std::vector<double> v2_first, std::vector<double> v1_second, std::vector<double> v2_second, double start);
 
   void min_prep();
   void do_all_prep(TString transformation = "fa3zzTozz");
@@ -57,6 +60,10 @@ class graph{
   TString file_name;
   std::vector<TString> file_name_vector;
   std::vector<double> stitch_point_vector;
+  std::vector<double> match_point_vector;
+
+  std::vector<double> add_point_x;
+  std::vector<double> add_point_y;
 
   std::vector<double> x;
   std::vector<double> y;
@@ -80,6 +87,28 @@ class graph{
 graph::graph(){
 
 }
+
+
+double graph::match(std::vector<double> v1_first, std::vector<double> v2_first, std::vector<double> v1_second, std::vector<double> v2_second, double start){
+
+  for(unsigned int i=0; i<v2_second.size(); i++){
+    for(unsigned int j=0; j<v2_first.size(); j++){//do this post sort if too slow
+      cout << "v2_first " << v2_first[j] << " v2_second " << v2_second[i] << endl;
+      double diff = fabs( (v2_second[i]-v2_first[j])/(0.5*(v2_second[i]+v2_first[j])));
+      cout << "v2_first[j] " << v2_first[j] << " start " << start << " diff " << diff << endl;
+      if( v2_first[j]>start && diff<1e-15 ){//match!
+        double offset = v1_first[j] - v1_second[i];
+        cout << "Match offset = " << v1_first[j] << " - " << v1_second[i] << " = " << offset << " at " << v2_second[i] << " (diff = " << diff << ")"<< endl;
+	return offset;
+      }
+    }//j
+  }//i
+  cout << "NO MATCH!" << endl;
+  
+  assert(0);
+  return -9999999999999;
+}
+
 
 void graph::get_raw_vectors(){
 
@@ -112,7 +141,9 @@ void graph::get_raw_vectors(){
     */
 
     //stitch
-    bool stitch_verbose = false;
+    bool stitch_offset = false;
+    bool stitch_offset_match = true;
+    bool stitch_verbose = true;
     for(int i=0; i<file_name_vector.size(); i++){
       cout << "Vector " << file_name_vector[i] << endl;
       cout << "Stitch " <<  stitch_point_vector[i] << endl;
@@ -123,8 +154,37 @@ void graph::get_raw_vectors(){
       std::vector<double> v1(limit->GetV1(), limit->GetV1() + limit->GetSelectedRows());//y
       std::vector<double> v2(limit->GetV2(), limit->GetV2() + limit->GetSelectedRows());//x
       
+      if(stitch_offset_match && i>0){
+	//Look for match with full range
+	double offset = match(y, x, v1, v2, match_point_vector[i-1]);//never tried stitching more than 2
+
+	//Correct small scan 
+	for(unsigned int j=0; j<v2.size(); j++){
+	  v1[j] = v1[j]+offset;
+	}
+      }
+      else if(stitch_offset){//this doesn't work when there are failures
+	cout << "Appllying offset before stitching" << endl;
+
+	//find min
+	double min = 999999999;
+	for(unsigned int i=0; i<v1.size(); i++){
+	  if(v1[i] < min) min=v1[i];
+	}
+	//if(fabs(min) > 0.1) cout << "WARNING!!! offset is " << min << endl;
+	if(1){
+	  cout << "offset: " << min << endl;
+	  for(unsigned int i=0; i<v1.size(); i++){
+	    v1[i] = v1[i] - min;
+	  }
+	}
+	else{
+	  cout << "offset: 0 " << endl;
+	}
+      }
+
       for(unsigned int j=0; j<v2.size(); j++){
-	if(j==0){
+	if(i==0){
 	  if(stitch_verbose) cout << v2[j] << " " << v1[j] << " " << stitch_point_vector[i] << endl;
 	  if(v2[j] < stitch_point_vector[i]){
 	    if(stitch_verbose) cout << "Add" << endl;
@@ -146,6 +206,10 @@ void graph::get_raw_vectors(){
   return;
 }
 
+
+void graph::add_point(){
+  
+}
 
 void graph::sort_vectors(){
   
@@ -443,6 +507,7 @@ void graph::transform_x(TString transformation){
       x[i] = x[i]*3.01/( (1-x[i])*0.017382 + x[i]*3.01);
     }
     else assert(0);
+    cout << "x " << x[i] << endl;
   }
   
   return;
