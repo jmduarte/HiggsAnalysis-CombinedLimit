@@ -502,6 +502,10 @@ void graph::transform_x(TString transformation){
       if(i==0) cout << "x axis is fa3wh" << endl;
       x[i] = x[i]*6.36/( (1-x[i])*0.017382 + x[i]*6.36);
     }
+    else if(transformation == "fa3zhTowh"){
+      if(i==0) cout << "x axis is fa3wh" << endl;
+      x[i] = x[i]*0.023868/( (1-x[i])*0.017382 + x[i]*0.023868);
+    }
     else if(transformation == "fa3zzTozh"){
       if(i==0) cout << "x axis is fa3zh" << endl;
       x[i] = x[i]*6.36/( (1-x[i])*0.023868 + x[i]*6.36);
@@ -518,7 +522,10 @@ void graph::transform_x(TString transformation){
       if(i==0) cout << "x axis is fa3ww" << endl;
       x[i] = x[i]*3.01/( (1-x[i])*0.017382 + x[i]*3.01);
     }
-    else assert(0);
+    else{
+      cout << "transformation " << transformation << " not found" << endl;
+      assert(0);
+    }
     cout << "x " << x[i] << endl;
   }
   
@@ -620,11 +627,21 @@ class figure{
   double leg_x_min = 0.2;
   double leg_x_max = 0.65;
 
+  double more_y_offset = 0;
+
   TString figure_name;
   TString x_title = "x";
 
   //inset
   bool doInset = false;
+  double inset_y_min=0;
+  double inset_y_max=1;
+  double inset_x_min=0;
+  double inset_x_max=0.01;
+  double inset_pos_y_min=0.45;
+  double inset_pos_y_max=0.8;
+  double inset_pos_x_min=0.53;
+  double inset_pos_x_max=0.88;
 
 };
 
@@ -643,7 +660,7 @@ void figure::draw( TString style ){
   hs->GetYaxis()->SetLabelSize(0.05);
   hs->GetXaxis()->SetTitleSize(0.05);
   hs->GetYaxis()->SetTitleSize(0.05);
-  hs->GetYaxis()->SetTitleOffset(1.2);
+  hs->GetYaxis()->SetTitleOffset(1.2+more_y_offset);
   hs->GetXaxis()->SetTitleOffset(1.2);
   hs->GetXaxis()->SetTitle(x_title);
   hs->GetYaxis()->SetTitle("-2 #Delta ln L");
@@ -707,10 +724,10 @@ void figure::draw( TString style ){
   //inset
   if(doInset){
     gPad->Update();
-    TPad *subpad = new TPad("subpad","",0.53,0.45,0.88,0.8);
+    TPad *subpad = new TPad("subpad","",inset_pos_x_min,inset_pos_y_min,inset_pos_x_max,inset_pos_y_max);
     subpad->Draw();
     subpad->cd();
-    TH1F* hs2 = cs->DrawFrame(0, 0, 0.01, 1);
+    TH1F* hs2 = cs->DrawFrame(inset_x_min, inset_y_min, inset_x_max, inset_y_max);
     hs2->GetXaxis()->SetNdivisions(505);
     hs2->GetXaxis()->SetLabelSize(0.05);
     hs2->GetYaxis()->SetLabelSize(0.05);
