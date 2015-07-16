@@ -219,6 +219,7 @@ void MultiDimFit::doGrid(RooAbsReal &nll)
     unsigned int n = poi_.size();
     //if (poi_.size() > 2) throw std::logic_error("Don't know how to do a grid with more than 2 POIs.");
     double nll0 = nll.getVal();
+    std::cout << "ben nll0: " << nll0 << std::endl;
 
     std::vector<double> p0(n), pmin(n), pmax(n);
     for (unsigned int i = 0; i < n; ++i) {
@@ -239,6 +240,7 @@ void MultiDimFit::doGrid(RooAbsReal &nll)
 
 
       //VHbb hack
+      std::cout << "grid hacked for vhbb" << std::endl;
       std::vector<double> x_linear, x_zztozh, x_zhtozz, x_merged;
       for(unsigned int i=0; i<points_; i++){
 	x_linear.push_back( (double)i/points_ );
@@ -301,6 +303,7 @@ void MultiDimFit::doGrid(RooAbsReal &nll)
             }
         }
     } else if (n == 2) {
+        std::cout << "ben: 2d grid" << std::endl;
         unsigned int sqrn = ceil(sqrt(double(points_)));
         unsigned int ipoint = 0, nprint=1;//nprint = ceil(0.005*sqrn*sqrn);
         RooAbsReal::setEvalErrorLoggingMode(RooAbsReal::CountErrors);
