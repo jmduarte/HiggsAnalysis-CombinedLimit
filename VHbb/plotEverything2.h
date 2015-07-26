@@ -526,7 +526,7 @@ void graph::transform_x(TString transformation){
       cout << "transformation " << transformation << " not found" << endl;
       assert(0);
     }
-    cout << "x " << x[i] << endl;
+    //cout << "x " << x[i] << endl;
   }
   
   return;
@@ -632,8 +632,11 @@ class figure{
   TString figure_name;
   TString x_title = "x";
 
+  bool draw_lines = true;
+
   //inset
   bool doInset = false;
+  bool draw_inset_lines = true;
   double inset_y_min=0;
   double inset_y_max=1;
   double inset_x_min=0;
@@ -672,6 +675,7 @@ void figure::draw( TString style ){
   //double legy=0.7;
   TLegend* leg = new TLegend(leg_x_min, leg_y_min, leg_x_max, leg_y_max);
   leg->SetLineColor(0);
+  leg->SetBorderSize(0);
   leg->SetFillColor(0);
 
   double max = 0;
@@ -686,7 +690,7 @@ void figure::draw( TString style ){
   cout << "Final max: " << max << endl;
   leg->Draw();
 
-  bool oldStyle = true;
+  bool oldStyle = false;
   if(oldStyle){
     TLatex* prelimTex = new TLatex();
     prelimTex->SetNDC();
@@ -711,15 +715,17 @@ void figure::draw( TString style ){
   int horizontal_style = 9;
   double one_sigma = 1, CL95 = 3.84, CL99 = 6.63;
   TLine* line_one_sigma  = new TLine(x_min, one_sigma, x_max, one_sigma);
-  TLine* line_95CL_sigma = new TLine(x_min, CL95, x_max, CL95);
-  TLine* line_99CL_sigma = new TLine(x_min, CL99, x_max, CL99);
+  TLine* line_95CL_sigma = new TLine(x_min, CL95,      x_max, CL95);
+  TLine* line_99CL_sigma = new TLine(x_min, CL99,      x_max, CL99);
   line_one_sigma->SetLineStyle(horizontal_style);
   line_95CL_sigma->SetLineStyle(horizontal_style);
   line_99CL_sigma->SetLineStyle(horizontal_style);
 
-  if(max>one_sigma) line_one_sigma->Draw();
-  if(max>CL95) line_95CL_sigma->Draw();
-  if(max>CL99) line_99CL_sigma->Draw();
+  if(draw_lines){
+    if(max>one_sigma && one_sigma<y_max) line_one_sigma->Draw();
+    if(max>CL95 && CL95<y_max) line_95CL_sigma->Draw();
+    if(max>CL99 && CL99<y_max) line_99CL_sigma->Draw();
+  }
 
   //inset
   if(doInset){
@@ -743,9 +749,23 @@ void figure::draw( TString style ){
     for(unsigned int i=0; i<graphs.size(); i++){
       graphs[i].gr->Draw(style);
     }
+
+    if(draw_inset_lines){
+      TLine* inset_line_one_sigma  = new TLine(inset_x_min, one_sigma, inset_x_max, one_sigma);
+      TLine* inset_line_95CL_sigma = new TLine(inset_x_min, CL95,      inset_x_max, CL95);
+      TLine* inset_line_99CL_sigma = new TLine(inset_x_min, CL99,      inset_x_max, CL99);
+      inset_line_one_sigma->SetLineStyle(horizontal_style);
+      inset_line_95CL_sigma->SetLineStyle(horizontal_style);
+      inset_line_99CL_sigma->SetLineStyle(horizontal_style);
+      if(max>one_sigma && one_sigma<inset_y_max) inset_line_one_sigma->Draw();
+      if(max>CL95 && CL95<inset_y_max) inset_line_95CL_sigma->Draw();
+      if(max>CL99 && CL99<inset_y_max) inset_line_99CL_sigma->Draw();
+    }
   }//doInset
 
+
   gPad->Update();
+
   cs->SaveAs(figure_name + ".pdf");
   cs->SaveAs(figure_name + ".png");
   cs->SaveAs(figure_name + ".eps");
