@@ -662,7 +662,7 @@ void jul25plots(){
   f_V.figure_name = prepend +"V";
   f_V.x_title = "f_{a3}^{ZZ}";
   f_V.y_min = 0;
-  f_V.y_max = 35;
+  f_V.y_max = 43;
   f_V.x_min = 0;
   f_V.leg_y_min = 0.6;
   f_V.leg_y_max = 0.87;
@@ -673,7 +673,7 @@ void jul25plots(){
   f_V.doInset = true;
   
   f_V.graphs = graphs_V;
-  f_V.draw("L");
+  //f_V.draw("L");
 
   
 
@@ -708,7 +708,7 @@ void jul25plots(){
   f_zoom_V.doInset = false;
   
   f_zoom_V.graphs = graphs_zoom_V;
-  f_zoom_V.draw("L");
+  //f_zoom_V.draw("L");
 
 
   ////////////////
@@ -753,8 +753,8 @@ void jul25plots(){
   f_all_common.inset_x_max = .007;
   f_all_common.inset_pos_y_min = 0.53;
   f_all_common.inset_pos_y_max = 0.88;
-  f_all_common.inset_pos_x_min = 0.55;
-  f_all_common.inset_pos_x_max = 0.9;
+  f_all_common.inset_pos_x_min = 0.54;
+  f_all_common.inset_pos_x_max = 0.89;
 
   f_all_common.graphs = graphs_all_common;
   f_all_common.draw("L");
@@ -788,7 +788,7 @@ void jul25plots(){
   f_zoom_all_common.more_y_offset = 0.15;
 
   f_zoom_all_common.graphs = graphs_zoom_all_common;
-  f_zoom_all_common.draw("L");
+  //f_zoom_all_common.draw("L");
 
   
   
