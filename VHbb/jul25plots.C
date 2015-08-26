@@ -220,10 +220,15 @@ void jul25plots(){
 
   graph g_WWWh_CMS_float_expected_WW;
   g_WWWh_CMS_float_expected_WW.file_name = "/uscms_data/d2/kreis/junFreeze/WWWh_CMS_float_expected_minuit_0p001_tries5_strategy1.combine.root";
+  g_WWWh_CMS_float_expected_WW.kill.push_back(0.984);
+  g_WWWh_CMS_float_expected_WW.kill.push_back(0.998);
+  g_WWWh_CMS_float_expected_WW.kill.push_back(0.999);
+  g_WWWh_CMS_float_expected_WW.kill.push_back(0.9991);
   g_WWWh_CMS_float_expected_WW.legend_name = "WH+WW expected";
   g_WWWh_CMS_float_expected_WW.color = kOrange; 
   g_WWWh_CMS_float_expected_WW.linestyle = 2; 
   g_WWWh_CMS_float_expected_WW.do_all_prep("fa3zzToww");
+  
 
 
   graph g_WWWh_CMS_common_observed_WW;
@@ -270,7 +275,7 @@ void jul25plots(){
   g_WWWh_CMS_common_observed_noScale.legend_name = "WH+WW observed (correlated #mu)";
   g_WWWh_CMS_common_observed_noScale.color = kViolet; 
   g_WWWh_CMS_common_observed_noScale.linestyle = 1; 
-  g_WWWh_CMS_common_observed_noScale.do_all_prep();
+  g_WWWh_CMS_common_observed_noScale.do_all_prep();//fa3zz
 
   graph g_WWWh_CMS_float_observed_WW;
   //g_WWWh_CMS_float_observed_WW.file_name_vector.push_back("/uscms_data/d2/kreis/junFreeze/WWWh_CMS_float_observed_minuit_0p0001_tries5_strategy0.combine.root");
@@ -292,8 +297,9 @@ void jul25plots(){
   g_WWWh_CMS_float_observed_WW.legend_name = "WH+WW observed";
   g_WWWh_CMS_float_observed_WW.color = kOrange; 
   g_WWWh_CMS_float_observed_WW.linestyle = 1; 
-  //g_WWWh_CMS_float_observed_WW.do_all_prep("fa3zzToww");
-  g_WWWh_CMS_float_observed_WW.do_all_prep();
+  g_WWWh_CMS_float_observed_WW.do_all_prep("fa3zzToww");
+  
+  
   
 
   //ZZZh
@@ -606,7 +612,7 @@ void jul25plots(){
   f_W.doInset = true;
   
   f_W.graphs = graphs_W;
-  //f_W.draw("L");
+  f_W.draw("L");
 
 
   ////////////////
@@ -640,7 +646,7 @@ void jul25plots(){
   f_zoom_W.doInset = false;
   
   f_zoom_W.graphs = graphs_zoom_W;
-  //f_zoom_W.draw("L");
+  f_zoom_W.draw("L");
 
 
   ////////////////
@@ -757,7 +763,7 @@ void jul25plots(){
   f_all_common.inset_pos_x_max = 0.89;
 
   f_all_common.graphs = graphs_all_common;
-  f_all_common.draw("L");
+  //f_all_common.draw("L");
 
   ////////////////
   // all common zoom
