@@ -624,6 +624,7 @@ class figure{
   int ndiv = 505;
   int y_ndiv = 506;
   //int ndiv = 512; 
+  double rightMargin = 0.05;
   double leg_y_min = 0.57;
   double leg_y_max = 0.82;
   double leg_x_min = 0.18;//.2
@@ -639,6 +640,7 @@ class figure{
   bool draw_lines = true;
   bool draw_lines_99_only = false;
   bool labelCL = false;
+  double cl_text_size = 0.03;
   double cl68_x = .2;
   double cl95_x = .2;
   double cl99_x = .2;
@@ -689,7 +691,7 @@ void figure::draw( TString style ){
   hs->GetYaxis()->SetTitle("-2 #Delta ln L");
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.15);
-  gPad->SetRightMargin(0.05);
+  gPad->SetRightMargin(rightMargin);
   //gPad->SetTopMargin(0.05);
   gPad->Modified();
 
@@ -766,7 +768,7 @@ void figure::draw( TString style ){
 
   TLatex* clTex = new TLatex();
   clTex->SetNDC();
-  clTex->SetTextSize(0.03);
+  clTex->SetTextSize(cl_text_size);
   clTex->SetTextAlign(31);//right
   clTex->SetTextFont(42);
 

@@ -533,7 +533,7 @@ void oct6_cwrPlots(){
   f_VH.cl68_y = 0.526971;
   
   f_VH.graphs = graphs_VH;
-  f_VH.draw("L");
+  //f_VH.draw("L");
 
 
   ////////////////
@@ -579,7 +579,7 @@ void oct6_cwrPlots(){
   f_Z.cl99_y = 0.3858921;
 
   f_Z.graphs = graphs_Z;
-  f_Z.draw("L");
+  //f_Z.draw("L");
 
 
   ////////////////
@@ -601,21 +601,17 @@ void oct6_cwrPlots(){
   f_zoom_Z.figure_name = prepend +"Z_zoom";
   f_zoom_Z.x_title = "f_{a_{#scale[1.3]{3}}}^{ZZ}";
   f_zoom_Z.y_min = 0;
-  f_zoom_Z.y_max = 4;
   f_zoom_Z.x_min = 0;
-  /*
-  f_zoom_Z.leg_y_min = 0.5;
-  f_zoom_Z.leg_y_max = 0.72;
-  f_zoom_Z.leg_x_min = 0.43;
-  f_zoom_Z.leg_x_max = 0.88;
-  */
-  f_zoom_Z.x_max = 0.015;
-  f_zoom_Z.ndiv = 505;
+  f_zoom_Z.x_max = 0.025;
+  f_zoom_Z.y_max = 1.2;
+
+  f_zoom_Z.rightMargin = 0.1;
 
   f_zoom_Z.doInset = false;
-  
+  f_zoom_Z.draw_lines = false;
+
   f_zoom_Z.graphs = graphs_zoom_Z;
-  //f_zoom_Z.draw("L");
+  f_zoom_Z.draw("L");
 
 
   ////////////////
@@ -657,7 +653,7 @@ void oct6_cwrPlots(){
 
 
   f_W.graphs = graphs_W;
-  f_W.draw("L");
+  //f_W.draw("L");
 
 
   ////////////////
@@ -679,21 +675,17 @@ void oct6_cwrPlots(){
   f_zoom_W.figure_name = prepend +"W_zoom";
   f_zoom_W.x_title = "f_{a_{#scale[1.3]{3}}}^{WW}";
   f_zoom_W.y_min = 0;
-  f_zoom_W.y_max = 4;
+  f_zoom_W.y_max = 1.2;
   f_zoom_W.x_min = 0;
-  /*
-  f_zoom_W.leg_y_min = 0.5;
-  f_zoom_W.leg_y_max = 0.72;
-  f_zoom_W.leg_x_min = 0.43;
-  f_zoom_W.leg_x_max = 0.88;
-  */
   f_zoom_W.x_max = 0.025;
-  f_zoom_W.ndiv = 505;
+  f_zoom_W.rightMargin = 0.1;
+
 
   f_zoom_W.doInset = false;
+  f_zoom_W.draw_lines = false;
   
   f_zoom_W.graphs = graphs_zoom_W;
-  //f_zoom_W.draw("L");
+  f_zoom_W.draw("L");
 
 
   ////////////////
@@ -737,7 +729,7 @@ void oct6_cwrPlots(){
   f_V.cl99_y = 0.3264;
 
   f_V.graphs = graphs_V;
-  f_V.draw("L");
+  //f_V.draw("L");
 
   
 
@@ -760,7 +752,7 @@ void oct6_cwrPlots(){
   f_zoom_V.figure_name = prepend +"V_zoom";
   f_zoom_V.x_title = "f_{a_{#scale[1.3]{3}}}^{ZZ}";
   f_zoom_V.y_min = 0;
-  f_zoom_V.y_max = 4;
+  f_zoom_V.y_max = 2;
   f_zoom_V.x_min = 0;
   /*
   f_zoom_V.leg_y_min = 0.5;
@@ -768,13 +760,18 @@ void oct6_cwrPlots(){
   f_zoom_V.leg_x_min = 0.43;
   f_zoom_V.leg_x_max = 0.88;
   */
-  f_zoom_V.x_max = 0.015;
-  f_zoom_V.ndiv = 505;
+  f_zoom_V.x_max = 0.01;
+  f_zoom_V.rightMargin = 0.1;
+
 
   f_zoom_V.doInset = false;
+  f_zoom_V.labelCL = true;
+  f_zoom_V.cl68_x = 0.28;
+  f_zoom_V.cl68_y = 0.525;
+
   
   f_zoom_V.graphs = graphs_zoom_V;
-  //f_zoom_V.draw("L");
+  f_zoom_V.draw("L");
 
 
   ////////////////
@@ -845,7 +842,7 @@ void oct6_cwrPlots(){
   f_all_common.cl95_y_inset = 0.8815;
 
   f_all_common.graphs = graphs_all_common;
-  f_all_common.draw("L");
+  //f_all_common.draw("L");
 
   ////////////////
   // all common zoom
@@ -864,22 +861,34 @@ void oct6_cwrPlots(){
   f_zoom_all_common.figure_name = prepend +"all_common_zoom";
   f_zoom_all_common.x_title = "f_{a_{#scale[1.3]{3}}}^{ZZ}";
   f_zoom_all_common.y_min = 0;
-  f_zoom_all_common.y_max = 80;
+  f_zoom_all_common.y_max = 48;
   f_zoom_all_common.x_min = 0;
-  /*
-  f_zoom_all_common.leg_y_min = 0.61;
-  f_zoom_all_common.leg_y_max = 0.86;
-  f_zoom_all_common.leg_x_min = 0.2;
-  f_zoom_all_common.leg_x_max = 0.53;
-  */
-  f_zoom_all_common.x_max = .03;
+
+  f_zoom_all_common.leg_y_min = 0.5421853;
+  f_zoom_all_common.leg_y_max = 0.791148;
+  f_zoom_all_common.leg_x_min = 0.1823899;
+  f_zoom_all_common.leg_x_max = 0.5125786;
+  
+  f_zoom_all_common.x_max = 0.0115;
   f_zoom_all_common.ndiv = 505;
+  f_zoom_all_common.rightMargin = 0.1;
+
+  f_zoom_all_common.extraTextHack = true;
 
   f_zoom_all_common.draw_lines = true;
   f_zoom_all_common.more_y_offset = 0.15;
 
+  f_zoom_all_common.labelCL = true;
+  //f_zoom_all_common.cl_text_size = 0.025;
+  f_zoom_all_common.cl68_x = 0.7562893;
+  f_zoom_all_common.cl95_x = 0.8254717;
+  f_zoom_all_common.cl99_x = 0.8977;
+  f_zoom_all_common.cl68_y = 0.1590595;
+  f_zoom_all_common.cl95_y = 0.2047026;
+  f_zoom_all_common.cl99_y = 0.2489627;
+
   f_zoom_all_common.graphs = graphs_zoom_all_common;
-  //f_zoom_all_common.draw("L");
+  f_zoom_all_common.draw("L");
 
   
   
