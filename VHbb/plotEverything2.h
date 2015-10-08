@@ -81,6 +81,7 @@ class graph{
   //Style
   TString legend_name = "";
   int color = 1;
+  int width = 2;
   int linestyle = 1;
 
   bool verbose = false;
@@ -394,7 +395,7 @@ void graph::create_graph(){
   gr->SetMarkerStyle(20);
   gr->SetMarkerColor(color);
   gr->SetLineColor(color);
-  gr->SetLineWidth(2);
+  gr->SetLineWidth(width);
   gr->SetLineStyle(linestyle);
 
   if(scale!="1"){
@@ -620,19 +621,37 @@ class figure{
   double x_min=0;
   double x_max=1;
   //int ndiv = 512;
-  //int ndiv = 505;
-  int ndiv = 512; 
-  double leg_y_min = 0.65;
-  double leg_y_max = 0.87;
-  double leg_x_min = 0.2;
-  double leg_x_max = 0.65;
+  int ndiv = 505;
+  int y_ndiv = 506;
+  //int ndiv = 512; 
+  double leg_y_min = 0.57;
+  double leg_y_max = 0.82;
+  double leg_x_min = 0.18;//.2
+  double leg_x_max = 0.57;
 
   double more_y_offset = 0;
 
   TString figure_name;
   TString x_title = "x";
 
+  bool extraTextHack = false;
+
   bool draw_lines = true;
+  bool draw_lines_99_only = false;
+  bool labelCL = false;
+  double cl68_x = .2;
+  double cl95_x = .2;
+  double cl99_x = .2;
+  double cl68_y = .6;
+  double cl95_y = .7;
+  double cl99_y = .8;
+  bool labelCL_inset = false;
+  double cl68_x_inset = .2;
+  double cl95_x_inset = .2;
+  double cl99_x_inset = .2;
+  double cl68_y_inset = .6;
+  double cl95_y_inset = .7;
+  double cl99_y_inset = .8;
 
   //inset
   bool doInset = false;
@@ -641,10 +660,10 @@ class figure{
   double inset_y_max=1;
   double inset_x_min=0;
   double inset_x_max=0.01;
-  double inset_pos_y_min=0.45;
-  double inset_pos_y_max=0.8;
-  double inset_pos_x_min=0.53;
-  double inset_pos_x_max=0.88;
+  double inset_pos_y_min=0.59;
+  double inset_pos_y_max=0.89;
+  double inset_pos_x_min=0.54;
+  double inset_pos_x_max=0.89;
 
 };
 
@@ -655,10 +674,11 @@ figure::figure(){
 
 void figure::draw( TString style ){
 
-  TCanvas* cs = new TCanvas("c "+figure_name, "c "+figure_name, 640, 640);
+  TCanvas* cs = new TCanvas("c "+figure_name, "c "+figure_name, 640, 768);
   cs->cd();
   TH1F* hs = cs->DrawFrame(x_min, y_min, x_max, y_max);
   hs->GetXaxis()->SetNdivisions(ndiv);
+  hs->GetYaxis()->SetNdivisions(y_ndiv);
   hs->GetXaxis()->SetLabelSize(0.05);
   hs->GetYaxis()->SetLabelSize(0.05);
   hs->GetXaxis()->SetTitleSize(0.05);
@@ -669,6 +689,8 @@ void figure::draw( TString style ){
   hs->GetYaxis()->SetTitle("-2 #Delta ln L");
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.15);
+  gPad->SetRightMargin(0.05);
+  //gPad->SetTopMargin(0.05);
   gPad->Modified();
 
 
@@ -678,10 +700,22 @@ void figure::draw( TString style ){
   leg->SetBorderSize(0);
   leg->SetFillColor(0);
 
+  std::vector<TGraph*> fake_graphs;
   double max = 0;
   for(unsigned int i=0; i<graphs.size(); i++){
+    graphs[i].gr->SetLineColor(graphs[i].color);
     graphs[i].gr->Draw(style);
+    
+    /*
+    // Use this code if you want to change the style in the legend
+    TGraph* fake_graph = (TGraph*)(graphs[i].gr->Clone());
+    if(fake_graph->GetLineStyle() == 9) fake_graph->SetLineStyle(7);
+    fake_graphs.push_back(fake_graph);
+    leg->AddEntry(fake_graphs[i], graphs[i].legend_name, "l");
+    */
+
     leg->AddEntry(graphs[i].gr, graphs[i].legend_name, "l");
+
 
     //get max
     double this_max = TMath::MaxElement(graphs[i].gr->GetN(), graphs[i].gr->GetY());
@@ -712,7 +746,16 @@ void figure::draw( TString style ){
     CMS_lumi( cs );
   }
 
-  int horizontal_style = 9;
+  if(extraTextHack){
+    TLatex* hack_tex = new TLatex();
+    hack_tex->SetNDC();
+    hack_tex->SetTextSize(0.03);
+    hack_tex->SetTextAlign(31);//right
+    hack_tex->SetTextFont(42);
+    hack_tex->DrawLatex(0.341195,0.802213, "correlated #mu");
+  }
+      
+  int horizontal_style = 7;
   double one_sigma = 1, CL95 = 3.84, CL99 = 6.63;
   TLine* line_one_sigma  = new TLine(x_min, one_sigma, x_max, one_sigma);
   TLine* line_95CL_sigma = new TLine(x_min, CL95,      x_max, CL95);
@@ -721,10 +764,31 @@ void figure::draw( TString style ){
   line_95CL_sigma->SetLineStyle(horizontal_style);
   line_99CL_sigma->SetLineStyle(horizontal_style);
 
+  TLatex* clTex = new TLatex();
+  clTex->SetNDC();
+  clTex->SetTextSize(0.03);
+  clTex->SetTextAlign(31);//right
+  clTex->SetTextFont(42);
+
   if(draw_lines){
-    if(max>one_sigma && one_sigma<y_max) line_one_sigma->Draw();
-    if(max>CL95 && CL95<y_max) line_95CL_sigma->Draw();
-    if(max>CL99 && CL99<y_max) line_99CL_sigma->Draw();
+    if(max>one_sigma && one_sigma<y_max){
+      line_one_sigma->Draw();
+      if(labelCL) clTex->DrawLatex(cl68_x,cl68_y, "68% CL");
+    }
+    if(max>CL95 && CL95<y_max){
+      line_95CL_sigma->Draw();
+      if(labelCL) clTex->DrawLatex(cl95_x, cl95_y, "95% CL");
+    }
+    if(max>CL99 && CL99<y_max){
+      line_99CL_sigma->Draw();
+      if(labelCL) clTex->DrawLatex(cl99_x, cl99_y, "99% CL");
+    }
+  }
+  else if(draw_lines_99_only){
+    if(max>CL99 && CL99<y_max){
+      line_99CL_sigma->Draw();
+      if(labelCL) clTex->DrawLatex(cl99_x, cl99_y, "99% CL");
+    }
   }
 
   //inset
@@ -734,17 +798,19 @@ void figure::draw( TString style ){
     subpad->Draw();
     subpad->cd();
     TH1F* hs2 = cs->DrawFrame(inset_x_min, inset_y_min, inset_x_max, inset_y_max);
-    hs2->GetXaxis()->SetNdivisions(505);
-    hs2->GetXaxis()->SetLabelSize(0.05);
-    hs2->GetYaxis()->SetLabelSize(0.05);
-    //hs2->GetXaxis()->SetTitleSize(0.05);
-    //hs2->GetYaxis()->SetTitleSize(0.05);
+    hs2->GetXaxis()->SetNdivisions(503);
+    hs2->GetYaxis()->SetNdivisions(503);
+    hs2->GetXaxis()->SetLabelSize(0.09);
+    hs2->GetYaxis()->SetLabelSize(0.09);
+    //hs2->GetXaxis()->SetTitleSize(0.09);
+    //hs2->GetYaxis()->SetTitleSize(0.09);
     //hs2->GetYaxis()->SetTitleOffset(1.2);
     //hs2->GetXaxis()->SetTitleOffset(1.2);
     //hs2->GetXaxis()->SetTitle(x_title);
     //hs2->GetYaxis()->SetTitle("-2 #Delta ln L");
     //gPad->SetBottomMargin(0.14);
-    //gPad->SetLeftMargin(0.15);
+    gPad->SetLeftMargin(0.15);
+    gPad->SetTopMargin(0.05);
     //gPad->Modified();
     for(unsigned int i=0; i<graphs.size(); i++){
       graphs[i].gr->Draw(style);
@@ -757,9 +823,19 @@ void figure::draw( TString style ){
       inset_line_one_sigma->SetLineStyle(horizontal_style);
       inset_line_95CL_sigma->SetLineStyle(horizontal_style);
       inset_line_99CL_sigma->SetLineStyle(horizontal_style);
-      if(max>one_sigma && one_sigma<inset_y_max) inset_line_one_sigma->Draw();
-      if(max>CL95 && CL95<inset_y_max) inset_line_95CL_sigma->Draw();
-      if(max>CL99 && CL99<inset_y_max) inset_line_99CL_sigma->Draw();
+      clTex->SetTextSize(0.07);
+      if(max>one_sigma && one_sigma<inset_y_max){
+	inset_line_one_sigma->Draw();
+	if(labelCL_inset) clTex->DrawLatex(cl68_x_inset,cl68_y_inset, "68% CL");
+      }
+      if(max>CL95 && CL95<inset_y_max){
+	inset_line_95CL_sigma->Draw();
+	if(labelCL_inset) clTex->DrawLatex(cl95_x_inset,cl95_y_inset, "95% CL");
+      }
+      if(max>CL99 && CL99<inset_y_max){
+	inset_line_99CL_sigma->Draw();
+	if(labelCL_inset) clTex->DrawLatex(cl99_x_inset,cl99_y_inset, "99% CL");
+      }
     }
   }//doInset
 
@@ -791,7 +867,7 @@ void figure::CMS_lumi( TPad* pad, int iPeriod, int iPosX ){
   TString cmsText     = "CMS";
   float cmsTextFont   = 61;  // default is helvetic-bold
   
-  bool writeExtraText = true;
+  bool writeExtraText = false;
   TString extraText   = "Preliminary";
   float extraTextFont = 52;  // default is helvetica-italics
   
@@ -825,7 +901,7 @@ void figure::CMS_lumi( TPad* pad, int iPeriod, int iPosX ){
 
   //C file
 
-  bool outOfFrame    = true;
+  bool outOfFrame    = false;
   if( iPosX/10==0 ) 
     {
       outOfFrame = true;
