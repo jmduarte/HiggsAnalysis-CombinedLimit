@@ -14,7 +14,7 @@ void redo_colors(std::vector<graph> & graphs){
 
 }
 
-void oct6_cwrPlots(){
+void oct6_cwrPlotsZH(){
   cout << "Plot everything 2" << endl;
 
   /////////////////////////////
@@ -83,7 +83,7 @@ void oct6_cwrPlots(){
   g_Zh_CMS_common_expected_ZZ.color = kAzure-2; 
   g_Zh_CMS_common_expected_ZZ.linestyle = 9; 
   g_Zh_CMS_common_expected_ZZ.add_last_point_switch = true; 
-  g_Zh_CMS_common_expected_ZZ.do_all_prep("fa3zhTozz");
+  g_Zh_CMS_common_expected_ZZ.do_all_prep();
 
   graph g_Zh_CMS_common_observed;
   g_Zh_CMS_common_observed.file_name = "/uscms_data/d2/kreis/junFreeze/Zh_CMS_common_observed_minuit2_0p1_tries5_strategy1.combine.root";
@@ -95,10 +95,12 @@ void oct6_cwrPlots(){
   graph g_Zh_CMS_common_observed_ZZ;
   g_Zh_CMS_common_observed_ZZ.file_name = "/uscms_data/d2/kreis/junFreeze/Zh_CMS_common_observed_minuit2_0p1_tries5_strategy1.combine.root";
   g_Zh_CMS_common_observed_ZZ.legend_name = "ZH observed";
+  g_Zh_CMS_common_observed_ZZ.kill.push_back(0.038);
+  g_Zh_CMS_common_observed_ZZ.kill.push_back(0.041);
   g_Zh_CMS_common_observed_ZZ.color = kAzure-2; 
   g_Zh_CMS_common_observed_ZZ.linestyle = 1; 
   g_Zh_CMS_common_observed_ZZ.add_last_point_switch = true; 
-  g_Zh_CMS_common_observed_ZZ.do_all_prep("fa3zhTozz");
+  g_Zh_CMS_common_observed_ZZ.do_all_prep();
 
   graph g_Zh_TEV_common_expected;
   g_Zh_TEV_common_expected.file_name = "/uscms_data/d2/kreis/junFreeze/lambdaNominal_Zh_TEV_common_expected_minuit2_0p1_tries5_strategy1.combine.root";
@@ -182,14 +184,14 @@ void oct6_cwrPlots(){
   g_ZZ_CMS_expected.legend_name = "ZZ expected";
   g_ZZ_CMS_expected.color = kTeal+2; 
   g_ZZ_CMS_expected.linestyle = 9; 
-  g_ZZ_CMS_expected.do_all_prep();
+  g_ZZ_CMS_expected.do_all_prep("fa3zzTozh");
 
   graph g_ZZ_CMS_observed;
   g_ZZ_CMS_observed.file_name = "/eos/uscms/store/user/lpcmbja/noreplica/jstupak/fa3Scans/hVV_newGrid/ZZ_CMS_common_observed_minuit2_0p1_tries5_strategy1.combine.root";
   g_ZZ_CMS_observed.legend_name = "ZZ observed";
   g_ZZ_CMS_observed.color = kTeal+2; 
   g_ZZ_CMS_observed.linestyle = 1; 
-  g_ZZ_CMS_observed.do_all_prep();
+  g_ZZ_CMS_observed.do_all_prep("fa3zzTozh");
 
 
   //VV
@@ -335,7 +337,7 @@ void oct6_cwrPlots(){
   g_ZZZh_CMS_float_expected.legend_name = "ZH+ZZ expected";
   g_ZZZh_CMS_float_expected.color = kViolet-6; 
   g_ZZZh_CMS_float_expected.linestyle = 9; 
-  g_ZZZh_CMS_float_expected.do_all_prep();
+  g_ZZZh_CMS_float_expected.do_all_prep("fa3zzTozh");
 
   graph g_ZZZh_CMS_common_observed;
   g_ZZZh_CMS_common_observed.file_name = "/uscms_data/d2/kreis/junFreeze/ZZZh_CMS_common_observed_minuit_0p1_tries5_strategy1.combine.root";
@@ -357,7 +359,7 @@ void oct6_cwrPlots(){
   g_ZZZh_CMS_float_observed.legend_name = "ZH+ZZ observed";
   g_ZZZh_CMS_float_observed.color = kViolet-6; 
   g_ZZZh_CMS_float_observed.linestyle = 1; 
-  g_ZZZh_CMS_float_observed.do_all_prep();
+  g_ZZZh_CMS_float_observed.do_all_prep("fa3zzTozh");
 
 
   //VVVh
@@ -412,7 +414,7 @@ void oct6_cwrPlots(){
   g_VVVh_CMS_float_observed.linestyle = 1; 
   g_VVVh_CMS_float_observed.do_all_prep();
   
-  
+  /*
   //SMOOTHING TEST
   //////////////////
   TCanvas* c1 = new TCanvas();
@@ -432,7 +434,7 @@ void oct6_cwrPlots(){
   //s->SetLineColor(kGreen);
   //s->Draw("c same");
   //s->Draw("c");
-  
+  */
 
 
   /////////////////////////////
@@ -547,13 +549,13 @@ void oct6_cwrPlots(){
   graphs_Z.push_back(g_ZZZh_CMS_float_expected);
   graphs_Z.push_back(g_ZZ_CMS_observed);
   graphs_Z.push_back(g_ZZ_CMS_expected);
-  graphs_Z.push_back(g_Zh_CMS_common_observed_ZZ);  
+  graphs_Z.push_back(g_Zh_CMS_common_observed_ZZ);  //actually zh
   graphs_Z.push_back(g_Zh_CMS_common_expected_ZZ);
   redo_colors(graphs_Z);
 
   figure f_Z;
-  f_Z.figure_name = prepend +"Z";
-  f_Z.x_title = "f_{a_{#scale[1.3]{3}}}^{ZZ}";
+  f_Z.figure_name = prepend +"Z_fa3vh";
+  f_Z.x_title = "f_{a_{#scale[1.3]{3}}}^{ZH}";
   f_Z.y_min = 0;
   f_Z.y_max = 15;
   f_Z.x_min = 0;
@@ -566,16 +568,18 @@ void oct6_cwrPlots(){
   f_Z.x_max = global_x_max;
 
   f_Z.doInset = false;
-  f_Z.inset_x_max = .025;
+  f_Z.inset_x_min = 0;
+  f_Z.inset_x_max = 1;
+  f_Z.inset_y_min = 0;
+  f_Z.inset_y_max = 1;
 
   f_Z.labelCL = true;
-  f_Z.cl68_x = 0.2610063;
-  //f_Z.cl95_x = 0.2830189;
-  f_Z.cl95_x = 0.2688679;
-  //f_Z.cl99_x = 0.2814465;
-  f_Z.cl99_x = 0.2688679;
+  f_Z.cl68_x = 0.2672956;
+  f_Z.cl95_x = 0.2672956;
+  f_Z.cl99_x = 0.2672956;
+
   f_Z.cl68_y = 0.1964039;
-  f_Z.cl95_y = 0.3374827;
+  f_Z.cl95_y = 0.3388658;
   f_Z.cl99_y = 0.4813278;
 
   f_Z.graphs = graphs_Z;
@@ -598,17 +602,27 @@ void oct6_cwrPlots(){
   redo_colors(graphs_zoom_Z);
 
   figure f_zoom_Z;
-  f_zoom_Z.figure_name = prepend +"Z_zoom";
-  f_zoom_Z.x_title = "f_{a_{#scale[1.3]{3}}}^{ZZ}";
+  f_zoom_Z.figure_name = prepend +"Z_fa3vh_zoom";
+  f_zoom_Z.x_title = "f_{a_{#scale[1.3]{3}}}^{ZH}";
   f_zoom_Z.y_min = 0;
   f_zoom_Z.x_min = 0;
-  f_zoom_Z.x_max = 0.025;
+  f_zoom_Z.x_max = 1;
   f_zoom_Z.y_max = 1.2;
 
+  f_zoom_Z.leg_x_min = 0.28;
+  f_zoom_Z.leg_x_max = 0.78;
+  f_zoom_Z.leg_y_min = 0.47;
+  f_zoom_Z.leg_y_max = 0.75;
+  
   f_zoom_Z.rightMargin = 0.1;
 
   f_zoom_Z.doInset = false;
-  f_zoom_Z.draw_lines = false;
+
+  f_zoom_Z.draw_lines = true;
+
+  f_zoom_Z.labelCL = true;
+  f_zoom_Z.cl68_x = 0.8647799;
+  f_zoom_Z.cl68_y = 0.7786999;
 
   f_zoom_Z.graphs = graphs_zoom_Z;
   //f_zoom_Z.draw("L");
@@ -633,7 +647,7 @@ void oct6_cwrPlots(){
   f_W.figure_name = prepend +"W";
   f_W.x_title = "f_{a_{#scale[1.3]{3}}}^{WW}";
   f_W.y_min = 0;
-  f_W.y_max = 2.5;
+  f_W.y_max = 3;
   f_W.x_min = 0;
   /*
   f_W.leg_y_min = 0.6;
@@ -643,17 +657,17 @@ void oct6_cwrPlots(){
   */
   f_W.x_max = global_x_max;
 
-  f_W.doInset = false;
+  f_W.doInset = true;
   f_W.inset_y_max = .65;
   f_W.inset_x_max = .025;
 
   f_W.labelCL = true;
-  f_W.cl68_x = 0.9355346;
-  f_W.cl68_y = 0.4495159;
+  f_W.cl68_x = 0.9371069;
+  f_W.cl68_y = 0.4024896;
 
 
   f_W.graphs = graphs_W;
-  f_W.draw("L");
+  //f_W.draw("L");
 
 
   ////////////////
@@ -707,7 +721,7 @@ void oct6_cwrPlots(){
   f_V.figure_name = prepend +"V";
   f_V.x_title = "f_{a_{#scale[1.3]{3}}}^{ZZ}";
   f_V.y_min = 0;
-  f_V.y_max = 20;
+  f_V.y_max = 28;
   f_V.x_min = 0;
   /*
   f_V.leg_y_min = 0.6;
@@ -717,19 +731,19 @@ void oct6_cwrPlots(){
   */
   f_V.x_max = global_x_max;
 
-  f_V.doInset = false;
+  f_V.doInset = true;
   //f_V.inset_x_max = .025;
 
   f_V.labelCL = true;
-  f_V.cl68_x = 0.9418239;
-  f_V.cl95_x = 0.9418239;
-  f_V.cl99_x = 0.9418239;
-  f_V.cl68_y = 0.186722;
-  f_V.cl95_y = 0.2918396;
-  f_V.cl99_y = 0.3969571;
+  f_V.cl68_x = 0.92;
+  f_V.cl95_x = 0.92;
+  f_V.cl99_x = 0.92;
+  f_V.cl68_y = 0.1743;
+  f_V.cl95_y = 0.2517;
+  f_V.cl99_y = 0.3264;
 
   f_V.graphs = graphs_V;
-  f_V.draw("L");
+  //f_V.draw("L");
 
   
 
@@ -820,7 +834,7 @@ void oct6_cwrPlots(){
 
   f_all_common.more_y_offset = 0.15;
 
-  f_all_common.doInset = false;
+  f_all_common.doInset = true;
 
   f_all_common.inset_y_min = 0;
   f_all_common.inset_y_max = 4.3;
@@ -842,7 +856,7 @@ void oct6_cwrPlots(){
   f_all_common.cl95_y_inset = 0.8815;
 
   f_all_common.graphs = graphs_all_common;
-  f_all_common.draw("L");
+  //f_all_common.draw("L");
 
   ////////////////
   // all common zoom
