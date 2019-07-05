@@ -30,12 +30,14 @@ RooParametricShapeBinPdf::RooParametricShapeBinPdf(const char *name, const char 
   xMin(0)
 {
   memset(&xArray, 0, sizeof(xArray));
+  memset(&xMask, 0, sizeof(xMask));
   TIterator *varIter=_pars.createIterator(); 
   RooAbsReal *fVar;
   while ( (fVar = (RooAbsReal*)varIter->Next()) ){
     pars.add(*fVar);
   }
   setTH1Binning(_shape);
+  setTH1Mask(_shape);
   RooAbsReal* myintegral;
   RooListProxy obs;
   obs.add(x.arg());
@@ -68,6 +70,10 @@ RooParametricShapeBinPdf::RooParametricShapeBinPdf(const RooParametricShapeBinPd
   for (Int_t i=0; i<xBins+1; i++){
     xArray[i] = other.xArray[i];
   }
+
+  for (Int_t i=0; i<xBins; i++){
+    xMask[i] = other.xMask[i];
+  }
   
   TIterator *varIter=other.pars.createIterator(); 
   RooAbsReal *fVar;
@@ -90,6 +96,13 @@ void RooParametricShapeBinPdf::setTH1Binning(const TH1 &_Hnominal){
   memset(&xArray, 0, sizeof(xArray));
   for (Int_t i=0; i<xBins+1; i++){
     xArray[i] =  _Hnominal.GetXaxis()->GetBinLowEdge(i+1);
+  }
+}
+//---------------------------------------------------------------------------
+void RooParametricShapeBinPdf::setTH1Mask(const TH1 &_Hnominal){
+  memset(&xMask, 0, sizeof(xMask));
+  for (Int_t i=0; i<xBins; i++){
+    xMask[i] =  _Hnominal.GetBinContent(i+1);
   }
 }
 //---------------------------------------------------------------------------
@@ -118,6 +131,7 @@ Double_t RooParametricShapeBinPdf::evaluate() const
 
   Double_t xLow = xArray[iBin];
   Double_t xHigh = xArray[iBin+1];
+  Double_t xMaskVal = xMask[iBin];
 
   // check again if x variable has the right range already defined 
   // needed when combining multiple workspaces, and taking variable x from only one of them!
@@ -128,7 +142,7 @@ Double_t RooParametricShapeBinPdf::evaluate() const
     Double_t xHigh = xArray[iBin+1];
     x_rrv.setRange(rangeName.c_str(),xLow,xHigh);
   } 
-  integral = getIntegral(iBin)->getVal() / (xHigh-xLow);
+  integral = xMaskVal * getIntegral(iBin)->getVal() / (xHigh-xLow);
   
   if (integral>0.0) {
     return integral;
@@ -148,12 +162,17 @@ Double_t RooParametricShapeBinPdf::analyticalIntegral(Int_t code, const char* ra
   Double_t xRangeMin = x.min(rangeName); Double_t xRangeMax = x.max(rangeName);
   
   Double_t integral = 0.0;
-  
+  Double_t xMaskVal = 1.0;
+
   RooListProxy obs;
   obs.add(x.arg());
   
   if (code==1 && xRangeMin<=xMin && xRangeMax>=xMax){
-    integral = getIntegral(xBins)->getVal();
+    //integral = getIntegral(xBins)->getVal();
+    for (Int_t iBin=0; iBin<xBins; iBin++){
+      xMaskVal = xMask[iBin];
+      integral += xMaskVal * getIntegral(iBin)->getVal();
+    }
     return integral;
   }
   else if(code==1) {     

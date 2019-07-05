@@ -23,6 +23,7 @@ public:
    RooParametricShapeBinPdf(const RooParametricShapeBinPdf& other,
       const char* name = 0);
    void setTH1Binning(const TH1& _Hnominal);
+   void setTH1Mask(const TH1& _Hnominal);
    RooAbsPdf* getPdf() const;
    RooAbsReal* getIntegral(int index) const;
    virtual TObject* clone(const char* newname) const { return new RooParametricShapeBinPdf(*this,newname); }
@@ -39,6 +40,7 @@ protected:
    RooListProxy myintegrals;
    Int_t xBins;        // X bins
    Double_t xArray[2000]; // xArray[xBins+1]
+   Double_t xMask[2000]; // xMask[xBins]
    Double_t xMax;        // X max
    Double_t xMin;        // X min
 
